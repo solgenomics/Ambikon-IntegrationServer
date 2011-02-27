@@ -2,6 +2,8 @@ package App::Ambikon::IntegrationServer;
 use Moose;
 use namespace::autoclean;
 
+use App::Ambikon::Subsite;
+
 use Catalyst::Runtime 5.80;
 
 # Set flags and add plugins for the application.
@@ -26,24 +28,32 @@ extends 'Catalyst';
 
 our $VERSION = '0.01';
 
-# Configure the application.
-#
-# Note that settings in app_ambikon_integrationserver.conf (or other external
-# configuration file that you set up manually) take precedence
-# over this when using ConfigLoader. Thus configuration
-# details given here can function as a default configuration,
-# with an external configuration file acting as an override for
-# local deployment.
-
 __PACKAGE__->config(
     name => 'App::Ambikon::IntegrationServer',
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
 );
 
+# our subsites, hashed by the subsite name
+{
+    my $subsites;
+    sub subsites {
+        unless( $subsites ) {
+            $subsites = {};
+            my $c = shift;
+            while ( my ( $shortname, $ss_conf ) = each %{ $c->config->{subsite} || {} } ) {
+                $subsites->{$shortname} = App::Ambikon::Subsite->new({
+                    %$ss_conf,
+                    shortname => $shortname,
+                });
+            }
+        }
+        return $subsites;
+    }
+}
+
 # Start the application
 __PACKAGE__->setup();
-
 
 =head1 NAME
 
