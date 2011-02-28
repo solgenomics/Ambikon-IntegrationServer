@@ -13,7 +13,7 @@ sub new {
     local $ENV{CATALYST_SERVER} = $ENV{CATALYST_SERVER};
 
     my $temp_conf;
-    if ( my $conf_text = $args{configuration} ) {
+    if ( my $conf_text = delete $args{configuration} ) {
         $temp_conf = File::Temp->new( SUFFIX => '.conf' );
         $temp_conf->print( $conf_text );
         $temp_conf->close;
