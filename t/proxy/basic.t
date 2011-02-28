@@ -20,24 +20,21 @@ test_proxy(
 </subsite>
 
     backends => sub {
-        my $plack_server = shift;
-        $plack_server->run(sub {
-            my $env = shift;
-            my $response = $json->encode({
-                hello => "Hello world!\n",
-                env => filter_env( $env )
-              });
+        my $env = shift;
+        my $response = $json->encode({
+            hello => "Hello world!\n",
+            env => filter_env( $env )
+          });
 
-            return [
-                200,
-                [ 'Content-type' => 'text/html',
-                  'Content-length' => length($response),
-                  'X-bar'  => 'fogbat',
-                  'X-zee'  => 'zaz',
-                ],
-                IO::String->new( \$response ),
-            ];
-        });
+        return [
+            200,
+            [ 'Content-type' => 'text/html',
+              'Content-length' => length($response),
+              'X-bar'  => 'fogbat',
+              'X-zee'  => 'zaz',
+            ],
+            IO::String->new( \$response ),
+          ];
     },
 
     client => sub {
@@ -80,7 +77,7 @@ sub test_proxy {
                 my ( $port ) = @_;
                 local $ENV{PLACK_SERVER} = 'Standalone';
                 my $plack = Plack::Loader->auto( port => $port, host => $host );
-                $backend_code->( $plack );
+                $plack->run( $backend_code );
             },
           );
       } @$backends;
