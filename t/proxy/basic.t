@@ -11,6 +11,7 @@ use Plack::Loader;
 use lib 't/lib';
 use amb_int_mech;
 
+# basic test: basic conf with 1 backend
 test_proxy(
     conf => <<'',
 <subsite foo_bar>
@@ -22,8 +23,12 @@ test_proxy(
         my $plack_server = shift;
         $plack_server->run(sub {
             my $env = shift;
-            my $response = $json->encode({ hello => "Hello world!\n", env => filter_env( $env ) });
-            [
+            my $response = $json->encode({
+                hello => "Hello world!\n",
+                env => filter_env( $env )
+              });
+
+            return [
                 200,
                 [ 'Content-type' => 'text/html',
                   'Content-length' => length($response),
@@ -59,13 +64,12 @@ test_proxy(
 done_testing;
 exit;
 
-######## subroutines ######3
+######## subroutines #######
 
 sub test_proxy {
     my %args = @_;
 
-    my $host = $args{host} || '127.0.0.1';
-
+    my $host     = $args{host} || '127.0.0.1';
     my $backends = $args{backends} or die 'no backends';
     $backends = [ $backends ] unless ref $backends eq 'ARRAY';
 
