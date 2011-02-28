@@ -40,28 +40,8 @@ sub register_actions {
     }
 }
 
-sub build_internal_url {
-    my ( $self, $c, $subsite ) = @_;
-
-    my $external_path = $subsite->external_path;
-    my $external_pq   = $c->req->uri->path_query;
-
-    my $internal_url_base  = $subsite->internal_url;
-    ( my $internal_url = $external_pq ) =~ s/^$external_path/$internal_url_base/
-        or die "cannot translate external path '$external_pq' for subsite ".$subsite->shortname;
-
-    $c->log->debug( "Ambikon proxying to internal URL: $internal_url" )
-        if $c->debug;
-
-    return $internal_url;
-}
-
-sub build_internal_headers {
-    my ( $self, $c, $subsite ) = @_;
-
-    return +{ %{ $c->req->headers } };
-}
-
+# makes and returns the actual subroutine for the proxy action for a
+# subsite.  Implementation using AnyEvent::HTTP.
 sub _make_action_code_ae {
     my ( undef, $subsite ) = @_;
 
@@ -69,8 +49,11 @@ sub _make_action_code_ae {
     return sub {
         my ( $self, $c ) = @_;
 
-        my $url     = $self->build_internal_url( $c, $subsite );
-        my $headers = $self->build_internal_headers( $c, $subsite );
+        my $url     = $self->_build_internal_url( $c, $subsite );
+        my $headers = $self->_build_internal_headers( $c, $subsite );
+
+        $c->log->debug( "Ambikon proxying to internal URL: $url" )
+            if $c->debug;
 
         my $method  = uc $c->req->method;
         # TODO: figure out the body properly
@@ -106,6 +89,25 @@ sub _make_action_code_ae {
         );
         $cv->recv;
     }
+}
+
+sub _build_internal_url {
+    my ( $self, $c, $subsite ) = @_;
+
+    my $external_path = $subsite->external_path;
+    my $external_pq   = $c->req->uri->path_query;
+
+    my $internal_url_base  = $subsite->internal_url;
+    ( my $internal_url = $external_pq ) =~ s/^$external_path/$internal_url_base/
+        or die "cannot translate external path '$external_pq' for subsite ".$subsite->shortname;
+
+    return $internal_url;
+}
+
+sub _build_internal_headers {
+    my ( $self, $c, $subsite ) = @_;
+
+    return +{ %{ $c->req->headers } };
 }
 
 __PACKAGE__->meta->make_immutable;
