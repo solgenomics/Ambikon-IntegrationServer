@@ -5,6 +5,7 @@ use Test::More;
 use Test::TCP;
 
 use IO::String;
+use JSON::Any;  my $json = JSON::Any->new;
 use Plack::Loader;
 
 use lib 't/lib';
@@ -19,18 +20,35 @@ test_proxy(
 
     backend => sub {
         my $plack_server = shift;
-        my $hello = "Hello world\n";
         $plack_server->run(sub {
-            [ 200, [ 'Content-type','text/html','Content-length', length $hello ], IO::String->new( \$hello ) ];
+            my $env = shift;
+            my $response = $json->encode({ hello => "Hello world!\n", env => filter_env( $env ) });
+            [
+                200,
+                [ 'Content-type' => 'text/html',
+                  'Content-length' => length($response),
+                  'X-bar'  => 'fogbat',
+                ],
+                IO::String->new( \$response ),
+            ];
         });
     },
 
     client => sub {
         my $mech = shift;
-
-        $mech->get_ok( '/foo/bar/baz' );
+        $mech->add_header( 'X-noggin' => 'bumbumchicken' );
+        $mech->get_ok( '/foo/bar/baz?fee=fie+fo#fum' );
         $mech->content_contains( 'Hello world' );
-        $mech->dump_headers;
+        $mech->content_lacks( '#fum' );
+
+        is $mech->response->header('X-bar'), 'fogbat', 'headers from backend passed through proxy';
+
+        # parse our response JSON and look harder at the env that the request got
+        my $response = $json->decode( $mech->content );
+        is ref($response), 'HASH', 'successfully decoded response'
+           or diag explain $response;
+        my $request_env = $response->{env};
+        is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
     },
   );
 
@@ -57,4 +75,12 @@ sub test_proxy {
         },
       );
 
+}
+
+sub filter_env {
+    my %env = %{+shift};
+    for ( keys %env ) {
+        delete $env{$_} if /^psgi/;
+    }
+    return \%env;
 }
