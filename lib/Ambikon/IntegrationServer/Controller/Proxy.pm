@@ -1,4 +1,4 @@
-package App::Ambikon::IntegrationServer::Controller::Proxy;
+package Ambikon::IntegrationServer::Controller::Proxy;
 use Moose;
 use namespace::autoclean;
 

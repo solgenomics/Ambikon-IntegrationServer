@@ -6,8 +6,8 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
                                # Catalyst::Devel installed or haven't said
                                # 'make dist' to create a standalone tarball.
 
-name 'App-Ambikon-IntegrationServer';
-all_from 'lib/App/Ambikon/IntegrationServer.pm';
+name 'Ambikon-IntegrationServer';
+all_from 'lib/Ambikon/IntegrationServer.pm';
 
 requires 'Catalyst::Runtime' => '5.80031';
 requires 'Catalyst::Plugin::ConfigLoader';

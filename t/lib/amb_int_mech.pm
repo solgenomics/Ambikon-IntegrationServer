@@ -22,7 +22,7 @@ sub new {
     }
 
     return $class->SUPER::new(
-        catalyst_app => 'App::Ambikon::IntegrationServer',
+        catalyst_app => 'Ambikon::IntegrationServer',
         %args,
       );
 }

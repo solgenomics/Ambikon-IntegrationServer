@@ -1,4 +1,4 @@
-package App::Ambikon::IntegrationServer::Controller::Root;
+package Ambikon::IntegrationServer::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
@@ -12,7 +12,7 @@ __PACKAGE__->config(namespace => '');
 
 =head1 NAME
 
-App::Ambikon::IntegrationServer::Controller::Root - Root Controller for App::Ambikon::IntegrationServer
+Ambikon::IntegrationServer::Controller::Root - Root Controller for Ambikon::IntegrationServer
 
 =head1 DESCRIPTION
 

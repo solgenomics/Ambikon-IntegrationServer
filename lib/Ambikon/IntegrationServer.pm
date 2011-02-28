@@ -1,8 +1,8 @@
-package App::Ambikon::IntegrationServer;
+package Ambikon::IntegrationServer;
 use Moose;
 use namespace::autoclean;
 
-use App::Ambikon::Subsite;
+use Ambikon::Subsite;
 
 use Catalyst::Runtime 5.80;
 
@@ -17,7 +17,7 @@ extends 'Catalyst';
 our $VERSION = '0.01';
 
 __PACKAGE__->config(
-    name => 'App::Ambikon::IntegrationServer',
+    name => 'Ambikon::IntegrationServer',
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
 );
@@ -30,7 +30,7 @@ __PACKAGE__->config(
             $subsites = {};
             my $c = shift;
             while ( my ( $shortname, $ss_conf ) = each %{ $c->config->{subsite} || {} } ) {
-                $subsites->{$shortname} = App::Ambikon::Subsite->new({
+                $subsites->{$shortname} = Ambikon::Subsite->new({
                     %$ss_conf,
                     shortname => $shortname,
                 });
@@ -45,7 +45,7 @@ __PACKAGE__->setup();
 
 =head1 NAME
 
-App::Ambikon::IntegrationServer - Catalyst based application
+Ambikon::IntegrationServer - Catalyst based application
 
 =head1 SYNOPSIS
 
@@ -57,7 +57,7 @@ App::Ambikon::IntegrationServer - Catalyst based application
 
 =head1 SEE ALSO
 
-L<App::Ambikon::IntegrationServer::Controller::Root>, L<Catalyst>
+L<Ambikon::IntegrationServer::Controller::Root>, L<Catalyst>
 
 =head1 AUTHOR
 
