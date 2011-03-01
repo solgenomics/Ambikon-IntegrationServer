@@ -9,7 +9,7 @@ use Plack::Loader;
 use base 'Exporter';
 our @EXPORT_OK = 'test_proxy';
 
-use amb_int_mech;
+use Ambikon::IntegrationServer::Test::WWWMechanize;
 
 sub test_proxy {
     my %args = @_;
@@ -39,7 +39,7 @@ sub test_proxy {
     my $configuration = ref $args{conf} ? $args{conf}->( \@servers )
                                         : eval qq|"$args{conf}"|;
     die $@ if $@;
-    my $mech = amb_int_mech->new( configuration => $configuration );
+    my $mech = Ambikon::IntegrationServer::Test::WWWMechanize->new( configuration => $configuration );
     $args{client}->( $mech );
 }
 

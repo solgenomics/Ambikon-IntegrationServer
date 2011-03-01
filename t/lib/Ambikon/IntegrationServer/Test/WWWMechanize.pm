@@ -1,4 +1,5 @@
-package amb_int_mech;
+package #hide from PAUSE
+    Ambikon::IntegrationServer::Test::WWWMechanize;
 use strict;
 use warnings;
 
