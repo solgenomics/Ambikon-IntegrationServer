@@ -6,8 +6,10 @@ use warnings;
 use Test::TCP;
 use Plack::Loader;
 
+use JSON::Any;  my $json = JSON::Any->new;
+
 use base 'Exporter';
-our @EXPORT_OK = 'test_proxy';
+our @EXPORT_OK = ( 'test_proxy', 'filter_env' );
 
 use Ambikon::IntegrationServer::Test::WWWMechanize;
 
@@ -41,6 +43,16 @@ sub test_proxy {
     die $@ if $@;
     my $mech = Ambikon::IntegrationServer::Test::WWWMechanize->new( configuration => $configuration );
     $args{client}->( $mech );
+}
+
+# takes an env hashref and filters out psgi vars (many of which can't
+# be represented in JSON)
+sub filter_env {
+    my %env = %{+shift};
+    for ( keys %env ) {
+        delete $env{$_} if /^psgi/;
+    }
+    return \%env;
 }
 
 

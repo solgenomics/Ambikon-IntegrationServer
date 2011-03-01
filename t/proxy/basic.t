@@ -7,7 +7,7 @@ use IO::String;
 use JSON::Any;  my $json = JSON::Any->new;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy 'test_proxy';
+use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
 
 # test a basic conf with 1 backend
 test_proxy(
@@ -61,12 +61,3 @@ test_proxy(
 done_testing;
 exit;
 
-######## subroutines #######
-
-sub filter_env {
-    my %env = %{+shift};
-    for ( keys %env ) {
-        delete $env{$_} if /^psgi/;
-    }
-    return \%env;
-}
