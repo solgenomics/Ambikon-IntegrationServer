@@ -45,28 +45,17 @@ __PACKAGE__->setup();
 
 =head1 NAME
 
-Ambikon::IntegrationServer - Catalyst based application
+Ambikon::IntegrationServer - the Ambikon integration server
 
 =head1 SYNOPSIS
 
-    script/app_ambikon_integrationserver_server.pl
+    script/ambikon_integrationserver_server.pl
 
 =head1 DESCRIPTION
 
-[enter your description here]
-
-=head1 SEE ALSO
-
-L<Ambikon::IntegrationServer::Controller::Root>, L<Catalyst>
-
-=head1 AUTHOR
-
-Robert Buels,,,
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+The Ambikon integration server is a fast frontend web application for
+integrating other web applications.  Existing web applications can run
+unmodified under Ambikon.
 
 =cut
 
