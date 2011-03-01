@@ -3,8 +3,6 @@ use warnings;
 
 use Test::More;
 
-use Data::Dump;
-
 use lib 't/lib';
 use Ambikon::IntegrationServer::Test::Proxy 'test_proxy';
 
