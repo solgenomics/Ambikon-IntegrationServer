@@ -3,8 +3,10 @@ use warnings;
 
 use Test::More;
 
+use JSON::Any; my $json = JSON::Any->new;
+
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy 'test_proxy';
+use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy  filter_env /;
 
 
 # bigger test with 3 backends
@@ -28,16 +30,20 @@ test_proxy(
 EOC
 
     backends => [
-        sub { [ 200, [], ["Tweedle dum, with request URI ".shift->{REQUEST_URI}  ] ] },
-        sub { [ 404, [], ['Tweedle dee has no pages!'                            ] ] },
-        sub { [ 500, [], ['And the other one always crashes!'                    ] ] },
+        sub { [ 200, [], [ $json->encode( filter_env( { %{+shift}, hi => 'Tweedle dum here' }))]]},
+        sub { [ 404, [], ['Tweedle dee has no pages!'                                          ]]},
+        sub { [ 500, [], ['And the other one always crashes!'                                  ]]},
       ],
 
     client => sub {
         my $mech = shift;
+        $mech->add_header( 'X-Ambikon-User' => 'badman' );
         $mech->get_ok('/sub/dum/foggin/noggin');
         $mech->content_contains('Tweedle dum');
         $mech->content_contains('foggin/noggin');
+        my $dum_env = $json->decode( $mech->content );
+        is ref $dum_env, 'HASH', 'decoded env';
+        isnt $dum_env->{HTTP_X_AMBIKON_USER}, 'badman', 'user requests cannot set X-Ambikon-User';
 
         $mech->get('/sub/dee/nothing/here');
         is $mech->status, 404, 'Got a 404 from tweedle dee';

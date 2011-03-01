@@ -49,8 +49,8 @@ sub _make_action_code_ae {
     return sub {
         my ( $self, $c ) = @_;
 
-        my $url     = $self->_build_internal_url( $c, $subsite );
-        my $headers = $self->_build_internal_headers( $c, $subsite );
+        my $url     = $self->_build_internal_req_url( $c, $subsite );
+        my $headers = $self->_build_internal_req_headers( $c, $subsite );
 
         $c->log->debug( "Ambikon proxying to internal URL: $url" )
             if $c->debug;
@@ -69,20 +69,22 @@ sub _make_action_code_ae {
             proxy      => undef, # $ENV{http_proxy} causing test failures
             on_header  => sub {
                 my $headers = shift;
-                if ($headers->{Status} !~ /^59\d+/) {
+                if ( $headers->{Status} !~ /^59\d+/ ) {
                     $c->res->status( $headers->{Status} );
-                    $c->res->headers( HTTP::Headers->new( %$headers ) );
+                    $c->res->headers( $self->_build_external_res_headers( $headers ));
                 }
                 return 1;
             },
             on_body => sub { $c->res->write( $_[0] ); 1; },
             sub {
-                my (undef, $headers) = @_;
-                if (!$c->res->body and $headers->{Status} =~ /^59\d/) {
+                my ($data, $headers) = @_;
+                if ( $headers->{Status} =~ /^59\d/ ) {
                     $c->res->status(502);
                     $c->res->content_type('text/html');
                     $c->res->body("Gateway error: $headers->{Reason}");
                 }
+
+                $c->res->body( $data ) if defined $data;
 
                 $cv->send;
             }
@@ -91,7 +93,8 @@ sub _make_action_code_ae {
     }
 }
 
-sub _build_internal_url {
+# figure out the internal URL that handles a given client request
+sub _build_internal_req_url {
     my ( $self, $c, $subsite ) = @_;
 
     my $external_path = $subsite->external_path;
@@ -104,10 +107,25 @@ sub _build_internal_url {
     return $internal_url;
 }
 
-sub _build_internal_headers {
+# makes a bare hashref of headers for the internal request, using the
+# user's request headers
+sub _build_internal_req_headers {
     my ( $self, $c, $subsite ) = @_;
 
-    return +{ %{ $c->req->headers } };
+    my %h = %{ $c->req->headers };
+    for (keys %h) {
+        delete $h{$_} if /^X-Ambikon-/i;
+    }
+
+    return \%h;
+}
+
+# takes headers bare hashref, filters it and puts it into an
+# HTTP::Headers object.
+sub _build_external_res_headers {
+    my ( $self, $headers ) = @_;
+    my %h = %$headers;
+    return HTTP::Headers->new( %h );
 }
 
 __PACKAGE__->meta->make_immutable;
