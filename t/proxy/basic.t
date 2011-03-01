@@ -2,16 +2,14 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::TCP;
 
 use IO::String;
 use JSON::Any;  my $json = JSON::Any->new;
-use Plack::Loader;
 
 use lib 't/lib';
-use amb_int_mech;
+use Ambikon::IntegrationServer::Test::Proxy 'test_proxy';
 
-# basic test: basic conf with 1 backend
+# test a basic conf with 1 backend
 test_proxy(
     conf => <<'',
 <subsite foo_bar>
@@ -19,23 +17,25 @@ test_proxy(
   external_path  /foo
 </subsite>
 
-    backends => sub {
-        my $env = shift;
-        my $response = $json->encode({
-            hello => "Hello world!\n",
-            env => filter_env( $env )
-          });
+    backends => [
+        sub {
+            my $env = shift;
+            my $response = $json->encode({
+                hello => "Hello world!\n",
+                env => filter_env( $env )
+              });
 
-        return [
-            200,
-            [ 'Content-type' => 'text/html',
-              'Content-length' => length($response),
-              'X-bar'  => 'fogbat',
-              'X-zee'  => 'zaz',
-            ],
-            IO::String->new( \$response ),
-          ];
-    },
+            return [
+                200,
+                [ 'Content-type' => 'text/html',
+                  'Content-length' => length($response),
+                  'X-bar'  => 'fogbat',
+                  'X-zee'  => 'zaz',
+                ],
+                IO::String->new( \$response ),
+              ];
+        },
+      ],
 
     client => sub {
         my $mech = shift;
@@ -62,38 +62,6 @@ done_testing;
 exit;
 
 ######## subroutines #######
-
-sub test_proxy {
-    my %args = @_;
-
-    my $host     = $args{host} || '127.0.0.1';
-    my $backends = $args{backends} or die 'no backends';
-    $backends = [ $backends ] unless ref $backends eq 'ARRAY';
-
-    my @servers = map {
-        my $backend_code = $_;
-        my $test_server = Test::TCP->new(
-            code => sub {
-                my ( $port ) = @_;
-                local $ENV{PLACK_SERVER} = 'Standalone';
-                my $plack = Plack::Loader->auto( port => $port, host => $host );
-                $plack->run( $backend_code );
-            },
-          );
-      } @$backends;
-
-    my $port  = $servers[0]->port;
-    my $port1 = $servers[0]->port;
-    my ( $port2, $port3 );
-    $port2 = $servers[1]->port if $servers[1];
-    $port3 = $servers[2]->port if $servers[2];
-
-    my $configuration = ref $args{conf} ? $args{conf}->( \@servers )
-                                        : eval qq|"$args{conf}"|;
-    die $@ if $@;
-    my $mech = amb_int_mech->new( configuration => $configuration );
-    $args{client}->( $mech );
-}
 
 sub filter_env {
     my %env = %{+shift};
