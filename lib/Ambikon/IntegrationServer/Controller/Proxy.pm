@@ -11,7 +11,8 @@ __PACKAGE__->config(
     'namespace' => '',
   );
 
-# set up actions that proxy requests for each subsite
+# set up actions that proxy requests for each subsite.  overridden
+# from base class Catalyst::Controller
 sub register_actions {
     my ($self, $app) = @_;
     my $class = ref $self || $self;
@@ -23,7 +24,7 @@ sub register_actions {
         my $action_name = 'subsite_'.$subsite->shortname;
         my $reverse     = $namespace ? "$namespace/$action_name" : $action_name;
 
-        my $code = $self->_make_action_code_ae( $subsite );
+        my $code = $self->make_action_code( $subsite );
 
         my $action = $self->create_action(
             'name'       => $action_name,
@@ -40,20 +41,27 @@ sub register_actions {
     }
 }
 
-# makes and returns the actual subroutine for the proxy action for a
-# subsite.  Implementation using AnyEvent::HTTP.
-sub _make_action_code_ae {
+=method make_action_code
+
+makes and returns the actual subroutine for the proxy action for a
+subsite.  Implementation using AnyEvent::HTTP.
+
+=cut
+
+sub make_action_code {
     my ( undef, $subsite ) = @_;
 
     # the below is based heavily on Plack::App::Proxy
     return sub {
         my ( $self, $c ) = @_;
 
-        my $url     = $self->_build_internal_req_url( $c, $subsite );
-        my $headers = $self->_build_internal_req_headers( $c, $subsite );
+        my $url     = $self->build_internal_req_url( $c, $subsite );
+        my $headers = $self->build_internal_req_headers( $c, $subsite );
 
         $c->log->debug( "Ambikon proxying to internal URL: $url" )
             if $c->debug;
+
+        $c->stash->{subsite} = $subsite;
 
         my $method  = uc $c->req->method;
         # TODO: figure out the body properly
@@ -71,7 +79,7 @@ sub _make_action_code_ae {
                 my $headers = shift;
                 if ( $headers->{Status} !~ /^59\d+/ ) {
                     $c->res->status( $headers->{Status} );
-                    $c->res->headers( $self->_build_external_res_headers( $headers ));
+                    $c->res->headers( $self->build_external_res_headers( $c, $subsite, $headers ));
                 }
                 return 1;
             },
@@ -93,8 +101,13 @@ sub _make_action_code_ae {
     }
 }
 
-# figure out the internal URL that handles a given client request
-sub _build_internal_req_url {
+=method build_internal_req_url
+
+figure out the internal URL that handles a given client request
+
+=cut
+
+sub build_internal_req_url {
     my ( $self, $c, $subsite ) = @_;
 
     my $external_path = $subsite->external_path;
@@ -107,9 +120,14 @@ sub _build_internal_req_url {
     return $internal_url;
 }
 
-# makes a bare hashref of headers for the internal request, using the
-# user's request headers
-sub _build_internal_req_headers {
+=method build_internal_req_headers
+
+makes a bare hashref of headers for the internal request, using the
+user's request headers
+
+=cut
+
+sub build_internal_req_headers {
     my ( $self, $c, $subsite ) = @_;
 
     my %h = %{ $c->req->headers };
@@ -120,10 +138,15 @@ sub _build_internal_req_headers {
     return \%h;
 }
 
-# takes headers bare hashref, filters it and puts it into an
-# HTTP::Headers object.
-sub _build_external_res_headers {
-    my ( $self, $headers ) = @_;
+=method build_external_res_headers
+
+takes headers bare hashref, filters it and puts it into an
+HTTP::Headers object.
+
+=cut
+
+sub build_external_res_headers {
+    my ( $self, $c, $subsite, $headers ) = @_;
     my %h = %$headers;
     return HTTP::Headers->new( %h );
 }
