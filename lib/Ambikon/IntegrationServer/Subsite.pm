@@ -99,7 +99,6 @@ sub _instantiate_postprocessor {
         (ref($self->_app) || $self->_app).'::Postprocess',
         $rel_class,
         );
-    warn "loading postproc $rel_class -> $class";
 
     Class::MOP::load_class( $class );
 
