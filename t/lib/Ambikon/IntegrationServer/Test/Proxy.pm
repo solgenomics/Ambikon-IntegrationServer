@@ -6,8 +6,6 @@ use warnings;
 use Test::TCP;
 use Plack::Loader;
 
-use JSON::Any;  my $json = JSON::Any->new;
-
 use base 'Exporter';
 our @EXPORT_OK = ( 'test_proxy', 'filter_env' );
 
