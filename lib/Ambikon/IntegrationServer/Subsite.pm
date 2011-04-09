@@ -120,7 +120,7 @@ sub postprocessors_for {
 
     return
         map @{ $_->{postprocessors} || [] },
-        grep $_->{rule}->( $c ),
+        grep $_->{rule}->( $self, $c ),
         $self->postprocessor_groups;
 
 }
