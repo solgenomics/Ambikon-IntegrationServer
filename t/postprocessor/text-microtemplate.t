@@ -10,7 +10,7 @@ my $mock_c = Test::MockObject->new;
 $mock_c->set_always('bar','foo');
 
 is(
-    MicroTemplate->_render( $mock_c, 'Zee <?= $ambikon->bar ?>' ),
+    MicroTemplate->new->render( $mock_c, 'Zee <?= $ambikon->bar ?>' ),
     'Zee foo',
     'microtemplate is templating, has $ambikon obj available',
     );

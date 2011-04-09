@@ -5,6 +5,12 @@ with 'Ambikon::IntegrationServer::Role::Postprocessor';
 
 use Text::MicroTemplate ();
 
+has 'arg_names' => (
+    is => 'rw',
+    isa => 'ArrayRef',
+    default => sub { [ 'ambikon', 'ambikon_postproc' ] },
+    );
+
 sub can_stream { 0 }
 
 sub postprocess {
@@ -15,23 +21,22 @@ sub postprocess {
         subsite_postprocess_object => $self,
       );
 
-    $c->res->body( $self->_render( $c, $c->res->body ) );
+    $c->res->body( $self->render( $c, $c->res->body ) );
 
     return 1;
 }
 
-sub _render {
+sub render {
     my ( $self, $c, $body ) = @_;
 
-    return Text::MicroTemplate::render_mt(
+    my $code = Text::MicroTemplate->new({
+        escape_func => undef,
+        template    =>
+            '? my ( '.join(', ', map '$'.$_, @{$self->arg_names || ['undef']} ).' ) = @_;'."\n"
+            .$body,
+       })->code;
 
-        '? my ( $ambikon, $ambikon_text_mt ) = @_;'."\n"
-        .$body,
-
-        $c,
-        $self,
-
-     )->as_string
+    return (eval $code)->( $c, $self );
 }
 
 
