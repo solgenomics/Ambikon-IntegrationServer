@@ -2,7 +2,7 @@ package Ambikon::IntegrationServer;
 use Moose;
 use namespace::autoclean;
 
-use Ambikon::Subsite;
+use Ambikon::IntegrationServer::Subsite;
 
 use Catalyst::Runtime 5.80;
 
@@ -30,9 +30,10 @@ __PACKAGE__->config(
             $subsites = {};
             my $c = shift;
             while ( my ( $shortname, $ss_conf ) = each %{ $c->config->{subsite} || {} } ) {
-                $subsites->{$shortname} = Ambikon::Subsite->new({
+                my $ss = $subsites->{$shortname} = Ambikon::IntegrationServer::Subsite->new({
                     %$ss_conf,
                     shortname => $shortname,
+                    _app      => $c,
                 });
             }
         }
