@@ -14,9 +14,11 @@ theme_from_subsite  mainsite
 <subsite mainsite>
   internal_url   http://$host:$port1
   external_path  /
-  <theme>
-    theme_url    /ambikon_theme
-  </theme>
+
+  <Theme::MicroTemplate>
+      theme_url /ambikon_theme
+  </Theme::MicroTemplate>
+
 </subsite>
 <subsite foo_bar>
   internal_url   http://$host:$port2/monkeys
@@ -24,9 +26,14 @@ theme_from_subsite  mainsite
 
   <postprocess>
       when content_type:text/html
-      with Text::MicroTemplate
+      with Theme::MicroTemplate
+
+      <Theme::MicroTemplate>
+          theme_from_subsite mainsite
+      </Theme::MicroTemplate>
   </postprocess>
 </subsite>
+
 EOC
 
     backends => [
@@ -55,8 +62,7 @@ EOC
         <td>foo</td><td>tool</td><td>bar</td>
       </table>
 
-      <!-- this is a comment here -->
-      <ambikon:content />
+      <!-- AMBIKON_CONTENT -->
 
       <!-- and this is another comment -->
    </div>
@@ -79,13 +85,13 @@ EOTHEME
 <html>
   <head>
     <title>This is my title, hihi!</title>
-? $ambikon->print_html_head
+<?= $theme->head ?>
   </head>
   <body>
-? $ambikon->print_html_body_start
+<?= $theme->body_start ?>
     <h1>Important Page</h1>
     <p>This page is so important, you don't even <b>know</b>.</p>
-? $ambikon->print_html_body_end
+<?= $theme->body_end ?>
   </body>
 </html>
 EOH
@@ -99,7 +105,9 @@ EOH
         my $mech = shift;
         $mech->get_ok( '/foo/fog' );
         $mech->content_contains('so important');
-        $mech->content_lacks( '$ambikon', 'templating was run' );
+        $mech->content_lacks( '$theme', 'templating was run' );
+        $mech->content_lacks('&lt;', 'no funny quoting' );
+        $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'template was inserted' );
     },
   );
 
