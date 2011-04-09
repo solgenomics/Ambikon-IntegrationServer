@@ -1,0 +1,47 @@
+<subsite fooish_bar>
+
+  name Fooish Bar
+
+  internal_url   http://localhost/snogging/teenagers
+  external_path  /bar
+
+  <postprocess>
+     when all
+
+     with Faffer
+  </postprocess>
+  <postprocess>
+    when content_type:text/html
+
+    with Templating::Micro
+    <Templating::Micro>
+        wrapper_url  amb-subsite://foo/path/under/that
+        # OR
+        head_url
+        body_start_url
+        body_end_url
+    </Templating::Micro>
+
+    with Templating::Drupal7
+    <Templating::Drupal7>
+      subsite drupal # the default
+    </Templating::Drupal7>
+
+    with RewriteURLs
+    <RewriteURLs>
+      noggin bush
+    </RewriteURLs>
+
+  </postprocess>
+
+</subsite>
+
+
+<subsite barrish_foo>
+
+  name Barrish Foo
+
+  internal_url  http://localhost/nogbog
+  external_path /foo
+
+</subsite>
