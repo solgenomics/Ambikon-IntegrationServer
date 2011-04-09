@@ -83,10 +83,14 @@ sub make_action_code {
                 }
                 return 1;
             },
-            on_body => sub {
-                $c->res->write( $_[0] );
-                1;
-            },
+            ( $subsite->should_stream( $c )
+                  ? ( on_body => sub {
+                          $c->res->write( $_[0] );
+                          1;
+                      },
+                    )
+                  : ()
+            ),
             sub {
                 my ($data, $headers) = @_;
                 if ( $headers->{Status} =~ /^59\d/ ) {
