@@ -68,6 +68,8 @@ sub make_action_code {
         my $body    = $c->req->body || undef;
 
         my $cv = AnyEvent->condvar;
+        my $should_stream;
+        my $body_buffer = ''; #< only used if non-streaming
         my $req = AnyEvent::HTTP::http_request(
             $method    => $url,
             headers    => $headers,
@@ -83,23 +85,36 @@ sub make_action_code {
                 }
                 return 1;
             },
-            ( $subsite->should_stream( $c )
-                  ? ( on_body => sub {
-                          $c->res->write( $_[0] );
-                          1;
-                      },
-                    )
-                  : ()
-            ),
+            on_body => sub {
+                # we decide whether we are going to stream *when the
+                # body begins*, so that we can use the headers in our
+                # decision
+                unless( defined $should_stream ) {
+                    $should_stream = $subsite->should_stream( $c );
+                }
+
+                if( $should_stream ) {
+                    $c->res->write( $_[0] );
+                } else {
+                    $body_buffer .= $_[0];
+                }
+
+                return 1;
+            },
             sub {
                 my ($data, $headers) = @_;
                 if ( $headers->{Status} =~ /^59\d/ ) {
                     $c->res->status(502);
                     $c->res->content_type('text/html');
                     $c->res->body("Gateway error: $headers->{Reason}");
-                }
 
-                $c->res->body( $data ) if defined $data;
+                } else {
+                    $body_buffer ||= $data;
+                    if( defined $body_buffer && length $body_buffer ) {
+                        $c->res->body( $body_buffer );
+                        $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
+                    }
+                }
 
                 $cv->send;
             }
