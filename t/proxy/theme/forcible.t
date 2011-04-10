@@ -91,12 +91,7 @@ EOTHEME
                       'X-bar'  => 'fogbat',
                       'X-zee'  => 'zaz',
                     ],
-                    [ <<'EOH' ]],
-<html>
-  <head><title>This is my title, hihi!</title></head>
-  <body><h1>Important Page</h1><p>This page is so important, you don't even <b>know</b>.</p></body>
-</html>
-EOH
+                    [ slurp( 't/data/unmodified_1.html' )]],
               );
 
             return $dispatch{ $env->{PATH_INFO} } || [ 404, [], [$env->{PATH_INFO}.' not found']];;
@@ -106,16 +101,25 @@ EOH
     client => sub {
         my $mech = shift;
         $mech->get_ok( '/foo/' );
-        $mech->content_contains('so important') unless $ENV{FORCE_EXTERNAL_SITE};
+        $mech->content_contains('Tomato Functional') unless $ENV{FORCE_EXTERNAL_SITE};
         $mech->content_lacks('&lt;', 'no funny quoting' );
         $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'got template head' );
         $mech->content_contains( '<div id="outercontainer">', 'got template body start' );
         $mech->content_contains( 'and this is another comment', 'got template body end' );
-        $mech->html_lint_ok unless $ENV{FORCE_EXTERNAL_SITE};
+        $mech->content_contains('</html>');
+        my $count = $mech->content =~ m!</html>!g;
+        is( $count, 1, 'only one closing html' );
         diag $mech->content if $ENV{FORCE_EXTERNAL_SITE};
     },
   );
 
 done_testing;
 exit;
+
+sub slurp {
+    my $f = shift;
+    open my $h, '<', $f or die "$! reading $f";
+    local $/;
+    return <$h>;
+}
 
