@@ -26,7 +26,7 @@ Standard 404 error page
 
 =cut
 
-sub default :Path {
+sub default :Private {
     my ( $self, $c ) = @_;
     $c->response->body( 'Page not found' );
     $c->response->status(404);
