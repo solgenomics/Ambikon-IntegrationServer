@@ -55,6 +55,20 @@ push @tests, (
     [ $c3, undef, undef ],
     );
 
+my $c4 = {
+    external_path => '/foo',
+    internal_root => 'https://mickey.localhost/bar',
+    ext_request   => 'https://logical.meltdown.com/foo/zonk.php',
+    int_request   => 'https://mickey.localhost/bar/zonk.php',
+};
+
+push @tests, (
+    [ $c4, 'https://mickey.localhost/bar/1', '/foo/1' ],
+    [ $c4, 'HTTPS://mickey.localhost/bar/1', '/foo/1' ],
+    [ $c4, 'http://mickey.localhost/bar/1', 'http://logical.meltdown.com/foo/1'  ],
+    );
+
+
 rewrite_ok( @$_ ) for @tests;
 
 done_testing;
