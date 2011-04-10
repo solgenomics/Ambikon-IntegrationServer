@@ -1,0 +1,115 @@
+<html>
+<head><title>Tomato Functional Genomics Database (TFGD)</title>
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+</head>
+<body bgcolor=#FBF9C3>
+<link rel=stylesheet href=/TFGD/include/incbody.css type=text/css>
+<SCRIPT SRC=/TFGD/include/menu.js></SCRIPT>
+<table border=1 cellpadding=0 cellspacing=0 align=center bordercolor=#C67B7B style=border-collapse:collapse><tr><td bgcolor=#FFFFFF>
+<table align=center width=720 cellpadding=0 cellspacing=0 border=0>
+<tr align=center><td valign=top><img src=/TFGD/image/top.png></td></tr></table>
+<table align=center width=720 cellpadding=1 cellspacing=0 border=0>
+<tr bgcolor=#C67B7B><td><a href=/><img border=0 src=/TFGD/image/home_on.png></a></td>
+<td><a href=/cgi-bin/TFGD/miame/home.cgi onClick="return clickreturnvalue()" onMouseover="dropdownmenu(this, event, menu1, '160px')" onMouseout="delayhidemenu()">
+<img border=0 src=/TFGD/image/expression_off.png></a></td>
+<td><a href=/cgi-bin/TFGD/metabolite/home.cgi><img border=0 src=/TFGD/image/metabolite_off.png></a></td>
+<td><a href=/cgi-bin/TFGD/sRNA/home.cgi><img border=0 src=/TFGD/image/sRNA_off.png></a></td>
+<td><a href=/cgi-bin/TFGD/order/home.cgi><img border=0 src=/TFGD/image/order_off.png></a></td>
+<td><a href=/cgi-bin/TFGD/misc/links.cgi><img border=0 src=/TFGD/image/links_off.png></a></td>
+<td><a href=/cgi-bin/TFGD/misc/contact.cgi><img border=0 src=/TFGD/image/contact_off.png></a></td>
+</tr></table><br><br>
+<table align=center border=0 cellpadding=0 cellspacing=2 width=670>
+<tr><td valign=top>
+<table width=360 border=0 cellpadding=5 cellspacing=0>
+<tr align=left><th><h3><font color=brown>Quick start</font></h3></th></tr>
+<tr><td><p align=justify>
+<b><u><a href=/cgi-bin/TFGD/miame/home.cgi>Microarray data warehouse</a></u></b> - <a href=/cgi-bin/TFGD/miame/home.cgi>Archive</a> of tomato microarray experiments following <a href=http://www.mged.org/Workgroups/MIAME/miame.html target=_blank>MIAME guidelines</a> | <a href=/cgi-bin/TFGD/miame/upload/login.cgi>Data submission</a>
+<br><br>
+<b><u><a href=/cgi-bin/TFGD/array/home.cgi>Tomato microarrays:</a></u></b> 
+<a href=/cgi-bin/TFGD/array/probe_annotation.cgi>probe information</a> | 
+<a href=/cgi-bin/TFGD/array/probe_anno_batch.cgi>extract probe annotations</a> |
+<a href=/cgi-bin/TFGD/array/probe_seq_retrieve.cgi>extract probe sequences</a> |
+<a href=/cgi-bin/TFGD/array/blast.cgi>blast against probe sequences</a> |
+<a href=/cgi-bin/TFGD/array/funcat.cgi>probe functional classification</a> |
+<a href=/cgi-bin/TFGD/array/GO_analysis.cgi>GO term enrichment analysis</a> |
+<a href=/cgi-bin/TFGD/array/download_annotation.cgi>download probe annotations</a> |
+<br><br>
+<b><u><a href=/cgi-bin/TFGD/array_data/home.cgi>Analyzed microarray data:</a></u></b> 
+<a href=/cgi-bin/TFGD/array_data/probe_expression.cgi>probe expression</a> |
+<a href=/cgi-bin/TFGD/array_data/coexpr.cgi>gene coexpression search</a> |
+<a href=/cgi-bin/TFGD/array_data/tool.cgi>array data analysis tools</a> 
+<i>(<a href=/cgi-bin/TFGD/array_data/GO_term.cgi>identify enriched GO terms</a>
+ and <a href=/cgi-bin/TFGD/array_data/pathway.cgi>altered pathways</a>)</i> |
+<a href=/cgi-bin/TFGD/array_data/download_results.cgi>download analyzed array results</a><br><br>
+<b><u><a href=/cgi-bin/TFGD/digital/home.cgi>Digital expression data</a></u></b>
+<br><br>
+<b><u><a href=/cgi-bin/TFGD/metabolite/home.cgi>Metabolite:</a></u></b> 
+<a href=/cgi-bin/TFGD/metabolite/compound.cgi>compounds/metabolites</a> | 
+<a href=/cgi-bin/TFGD/metabolite/IL_line.cgi?line=pennellii>pennellii lines</a> |
+<a href=/cgi-bin/TFGD/metabolite/IL_line.cgi?line=hirsutum>hirsutum lines</a> | 
+<a href=/cgi-bin/TFGD/metabolite/correlation.cgi>correlation of metabolite and gene expression profiles</a><br><br>
+<b><u><a href=/cgi-bin/TFGD/sRNA/home.cgi>small RNAs:</a></u></b> <a href=/cgi-bin/TFGD/sRNA/sRNA.cgi>search small RNAs</a> | 
+<a href=/cgi-bin/TFGD/sRNA/miRNA.cgi>search candidate miRNAs</a> |
+<a href=/cgi-bin/TFGD/sRNA/target.cgi>miRNA target prediction</a> |
+<a href=/cgi-bin/TFGD/sRNA/siRNA_viewer.cgi>siRNA viewer</a> |
+<a href=/cgi-bin/TFGD/sRNA/abundant.cgi>highly abundant sRNAs</a><br><br>
+<b><u><a href=/cgi-bin/TFGD/order/home.cgi>ordering:</a></u></b> 
+<a href=/cgi-bin/TFGD/order/price.cgi>price information</a> |
+<a href=/cgi-bin/TFGD/order/order.cgi?item=clone>order cDNA, BAC or fosmid clones</a> |
+<a href=/cgi-bin/TFGD/order/order.cgi?item=TOM2_array>order TOM2 oligo arrays</a> |
+<a href=/cgi-bin/TFGD/order/order.cgi?item=BAC_filter>order BAC library filters</a></p><br>
+<p align=center><img src=/TFGD/image/tomato.gif width=330></p>
+</table></td>
+<td width=20>&nbsp;</td>
+<td valign=top>
+<table border=0 cellpadding=5 cellspacing=0>
+<tr align=left><th><h3><font color=brown>News</font></h3></th></tr>
+
+<tr><td><p align=justify><b>TFGD paper - Oct. 2010</b><br>
+<a href=http://www.ncbi.nlm.nih.gov/pubmed/20965973 target=_blank>A paper</a> describing the Tomato Functional Genomics Database (TFGD) was published on Nucleic Acids Research</p>
+</td></tr>
+
+<tr><td><p align=justify><b>siRNA viewer - Aug. 2010</b><br>
+Tomato small RNAs were aligned to tomato unigenes and <a href=/cgi-bin/TFGD/sRNA/siRNA_viewer.cgi>
+a viewer</a> of these alignments on each unigene was developed.</p>
+</td></tr>
+
+<tr><td><p align=justify><b>Tomato small RNA re-processed - Aug. 2010</b><br>
+Tomato small RNAs were re-processed using the recently released <a href=http://solgenomics.net/genomes/Solanum_lycopersicum/index.pl
+target=_blank>tomato genome sequences (v2.30)</a>. <a href=/cgi-bin/TFGD/sRNA/home.cgi>Details...</a></p>
+</td></tr>
+
+<tr><td><p align=justify><b>More tomato array data collected - March 2010</b><br>
+All tomato array datasets from <a href=http://www.ncbi.nlm.nih.gov/geo/ target=_blank>GEO</a>
+and <a href=http://www.ebi.ac.uk/microarray-as/ae/>ArrayExpress</a> were collected, analyzed and 
+deposited in our database. The analyzed results of these datasets were integrated into tools and queries 
+in the database. <a href=/cgi-bin/TFGD/array_data/coexpr.cgi>Gene coexpression</a> was also updated by
+including these new datasets.</p>
+</td></tr>
+
+<tr><td><p align=justify><b>Tomato miRNA identification updated - Dec. 2009</b><br>
+Tomato small RNAs were re-analyzed using <a href=http://solgenomics.net/tomato/ target=_blank>the tomato 
+shotgun genome sequence</a>. An updated pipeline was used to identify tomato candidate miRNAs. <a 
+href=/cgi-bin/TFGD/sRNA/home.cgi>Details...</a></p>
+</td></tr>
+
+<tr><td><p align=justify><b>Tomato Shotgun Genome Sequence prereleased - Dec. 2009</b><br>
+A prerelease of the tomato shotgun genome sequence is available at SGN. <a href=http://solgenomics.net/tomato/ target=_blank>Details...</a></p>
+</td></tr>
+
+<tr><td><p align=justify><b>Update on tomato small RNAs - July 2009</b><br>
+Around 14.9 million tomato small RNAs representing approximately five million unique small RNAs were downloaded 
+from <a href=http://smallrna.udel.edu target=_blank>the small RNA website</a> from Dr. Blake Meyer's lab at 
+University of Delaware. These small RNAs were processed and included in the database. 
+<a href=/cgi-bin/TFGD/sRNA/home.cgi>Explore...</a></p>
+</td></tr>
+
+<tr><td><a href=/cgi-bin/TFGD/misc/news.cgi>See all the news......</a><br>
+</td></tr></table></td></tr></table>
+<br><br>
+<table width=720 align=center border=0 cellpadding=4 cellspacing=0 bgcolor=#C67B7B>
+<tr><td align=center>
+This site is supported by NSF <a href=http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=0501778 target=_blank>DBI-0501778</a>
+and <a href=http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=0116076 target=_blank>DBI-0116076</a>
+</td></tr></table></td></tr></table>
+</body></html><br>
