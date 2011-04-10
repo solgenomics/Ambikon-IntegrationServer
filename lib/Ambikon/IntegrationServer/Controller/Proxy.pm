@@ -91,6 +91,7 @@ sub make_action_code {
                 # decision
                 unless( defined $should_stream ) {
                     $should_stream = $subsite->should_stream( $c );
+                    $c->log->debug("request streaming: ".($should_stream ? 'YES' : 'NO')) if $c->debug;
                 }
 
                 if( $should_stream ) {
