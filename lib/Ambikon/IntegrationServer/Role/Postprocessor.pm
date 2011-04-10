@@ -10,4 +10,13 @@ has '_app' => (
     required => 1,
 );
 
+before 'postprocess' => sub {
+    my ( $self, $c ) = @_;
+
+    # any postprocessing is likely to make the original content length
+    # wrong.  If we undef it here, Catalyst will recalculate it for us
+    # when it actually sends the response.
+    $c->res->headers->remove_header('content-length');
+};
+
 1;
