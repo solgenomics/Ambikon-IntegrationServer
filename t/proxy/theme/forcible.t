@@ -6,9 +6,11 @@ use Test::More;
 use lib 't/lib';
 use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy /;
 
-# test a basic conf with 1 backend
-test_proxy(
-    conf => <<'EOC',
+sub forcible_conf {
+
+    my $force_site = $ENV{FORCE_EXTERNAL_SITE} || 'http://$host:$port2/monkeys';
+
+    my $conf = <<'EOC'
 theme_from_subsite  mainsite
 
 <subsite mainsite>
@@ -21,7 +23,10 @@ theme_from_subsite  mainsite
 
 </subsite>
 <subsite foo_bar>
-  internal_url   http://$host:$port2/monkeys
+EOC
+."  internal_url $force_site\n"
+.<<'EOC'
+
   external_path  /foo
 
   <postprocess>
@@ -33,9 +38,14 @@ theme_from_subsite  mainsite
       </Theme::ForcibleTemplate>
   </postprocess>
 </subsite>
-
 EOC
+    ;
+    return $conf;
+}
 
+# test a basic conf with 1 backend
+test_proxy(
+    conf => forcible_conf(),
     backends => [
         sub {
             my $env = shift;
@@ -75,7 +85,7 @@ EOTHEME
             my $env = shift;
 
             my %dispatch = (
-                '/monkeys/fog' => [
+                '/monkeys/' => [
                     200,
                     [ 'Content-type' => 'text/html',
                       'X-bar'  => 'fogbat',
@@ -95,14 +105,14 @@ EOH
 
     client => sub {
         my $mech = shift;
-        $mech->get_ok( '/foo/fog' );
-        $mech->content_contains('so important');
-        $mech->content_lacks( '$theme', 'templating was run' );
+        $mech->get_ok( '/foo/' );
+        $mech->content_contains('so important') unless $ENV{FORCE_EXTERNAL_SITE};
         $mech->content_lacks('&lt;', 'no funny quoting' );
         $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'got template head' );
         $mech->content_contains( '<div id="outercontainer">', 'got template body start' );
         $mech->content_contains( 'and this is another comment', 'got template body end' );
-        $mech->html_lint_ok;
+        $mech->html_lint_ok unless $ENV{FORCE_EXTERNAL_SITE};
+        diag $mech->content if $ENV{FORCE_EXTERNAL_SITE};
     },
   );
 
