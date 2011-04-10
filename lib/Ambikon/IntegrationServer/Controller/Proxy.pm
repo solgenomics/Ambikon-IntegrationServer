@@ -61,7 +61,10 @@ sub make_action_code {
         $c->log->debug( "Ambikon proxying to internal URL: $url" )
             if $c->debug;
 
-        $c->stash->{subsite} = $subsite;
+        $c->stash(
+            subsite      => $subsite,
+            internal_url => $url,
+            );
 
         my $method  = uc $c->req->method;
         # TODO: figure out the body properly
