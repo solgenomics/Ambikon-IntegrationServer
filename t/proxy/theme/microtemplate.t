@@ -108,6 +108,7 @@ EOH
         $mech->content_lacks( '$theme', 'templating was run' );
         $mech->content_lacks('&lt;', 'no funny quoting' );
         $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'template was inserted' );
+        $mech->html_lint_ok;
     },
   );
 
