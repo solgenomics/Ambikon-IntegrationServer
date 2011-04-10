@@ -21,13 +21,13 @@ sub postprocess {
         subsite_postprocess_object => $self,
       );
 
-    $c->res->body( $self->render( $c, $c->res->body ) );
+    $c->res->body( $self->render( $c->res->body ) );
 
     return 1;
 }
 
 sub render {
-    my ( $self, $c, $body ) = @_;
+    my ( $self, $body ) = @_;
 
     my $code = Text::MicroTemplate->new({
         escape_func => undef,
@@ -36,7 +36,7 @@ sub render {
             .$body,
        })->code;
 
-    return (eval $code)->( $c, $self );
+    return (eval $code)->( $self->_app, $self );
 }
 
 
