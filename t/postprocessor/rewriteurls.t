@@ -3,6 +3,8 @@ use warnings;
 
 use Test::More;
 use Test::MockObject;
+
+use Data::Dump 'dump';
 use URI;
 
 use aliased 'Ambikon::IntegrationServer::Postprocess::RewriteURLs';
@@ -33,9 +35,24 @@ push @tests, (
     [ $c2, 'foo',  '/mickey/stardust.cgi/blarg/foo' ],
     [ $c2, 'http://mickey.localhost:80/foo/monkey/business.pl?x#f', '/mickey/stardust.cgi/monkey/business.pl?x#f' ],
     [ $c2, 'http://mickey.localhost/foo/monkey/business.pl?x#f', '/mickey/stardust.cgi/monkey/business.pl?x#f' ],
+    [ $c2, ('ftp://mickey.localhost/foo/monkey/business.pl?x#f')x2 ],
     [ $c2, 'https://mickey.localhost/foo/monkey/business.pl?x#f', 'https://logical.meltdown.com/mickey/stardust.cgi/monkey/business.pl?x#f' ],
     [ $c2, ('http://bit.ly/2')x2 ],
-    [ $c2, 'http://ca.ca', 'http://ca.ca/' ],
+    [ $c2, 'http://ca.ca', 'http://ca.ca' ],
+    );
+
+my $c3 = {
+    external_path => '/zee',
+    internal_root => 'http://mickey.localhost/ay',
+    ext_request   => 'https://logical.meltdown.com/zee/zonk.pl',
+    int_request   => 'http://mickey.localhost/ay/zee/zonk.pl',
+};
+
+push @tests, (
+    [ $c3, '/ay/2',       '/zee/2'      ],
+    [ $c3, '/v/sunk.php', '/v/sunk.php' ],
+    [ $c3, '', '' ],
+    [ $c3, undef, undef ],
     );
 
 rewrite_ok( @$_ ) for @tests;
@@ -57,6 +74,7 @@ sub rewrite_ok {
   $mock_c->set_isa('Ambikon::IntegrationServer');
   $mock_c->set_always( req => $mock_req );
   $mock_c->set_always( stash => { internal_url => URI->new( $int_request ) } );
+  $mock_c->set_always( debug => mydebug->new );
 
   my $mock_ss = Test::MockObject->new;
   $mock_ss->set_isa('Ambikon::IntegrationServer::Subsite');
@@ -65,5 +83,11 @@ sub rewrite_ok {
 
   my $r = RewriteURLs->new( _app => $mock_c, _subsite => $mock_ss );
 
-  is( $r->rewrite_url( $mock_c, $in ), $out, "$in -> $out" );
+  is( $r->rewrite_url( $mock_c, $in ), $out, dump($in).' -> '.dump($out) );
+}
+
+BEGIN {
+    package mydebug;
+    sub new { bless {}, shift }
+    sub warn { shift; warn @_ }
 }

@@ -14,6 +14,7 @@ sub postprocess {
 
 sub rewrite_url {
     my ( $self, $c, $url ) = @_;
+    return $url unless defined $url && length $url;
     $url = URI->new( $url ) unless ref $url;
 
     my $internal_root = $self->_subsite->internal_url->canonical;
@@ -25,7 +26,8 @@ sub rewrite_url {
     my $abs = $url->abs( $int_request )->canonical;
 
     # reroot it
-    (my $new_url = $abs) =~ s/^$internal_root/$external_path/;
+    (my $new_url = $abs) =~ s/^$internal_root/$external_path/
+      or return $url;
     $new_url = URI->new( $new_url );
 
     # and now relativize it again
