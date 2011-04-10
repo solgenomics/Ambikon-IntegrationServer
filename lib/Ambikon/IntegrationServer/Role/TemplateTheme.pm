@@ -5,6 +5,7 @@ use namespace::autoclean;
 use Carp;
 
 use LWP::Simple ();
+use MooseX::Types::URI 'Uri';
 
 requires '_app';
 
@@ -16,7 +17,8 @@ has 'theme_from_subsite' => (
 
 has 'theme_url' => (
     is         => 'rw',
-    isa        => 'URI',
+    isa        => Uri,
+    coerce     => 1,
     lazy_build => 1,
     );
 
