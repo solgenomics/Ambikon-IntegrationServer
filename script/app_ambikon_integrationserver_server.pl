@@ -5,7 +5,7 @@ BEGIN {
 }
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('App::Ambikon::IntegrationServer', 'Server');
+Catalyst::ScriptRunner->run('Ambikon::IntegrationServer', 'Server');
 
 1;
 

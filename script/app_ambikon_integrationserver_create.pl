@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('App::Ambikon::IntegrationServer', 'Create');
+Catalyst::ScriptRunner->run('Ambikon::IntegrationServer', 'Create');
 
 1;
 

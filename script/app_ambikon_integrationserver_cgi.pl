@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('App::Ambikon::IntegrationServer', 'CGI');
+Catalyst::ScriptRunner->run('Ambikon::IntegrationServer', 'CGI');
 
 1;
 

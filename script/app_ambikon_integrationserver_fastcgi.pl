@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('App::Ambikon::IntegrationServer', 'FastCGI');
+Catalyst::ScriptRunner->run('Ambikon::IntegrationServer', 'FastCGI');
 
 1;
 
