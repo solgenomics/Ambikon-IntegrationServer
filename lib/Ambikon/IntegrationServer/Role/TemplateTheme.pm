@@ -34,12 +34,16 @@ sub _build_theme_url {
 
     my $c = $self->_app;
 
-    my $subsite = $c->subsites->{ $self->theme_from_subsite }
-        or croak "subsite ".$self->theme_from_subsite." does not exist";
+    $self->theme_from_subsite
+       or die "either theme_url or theme_from_subsite conf var must be set for $class";
+
     my $subsite_config_key = $class;
     { my $prefix = (ref( $c ) || $c ).'::Post[^:]+::';
       $subsite_config_key =~ s/^$prefix// or die "$prefix, $subsite_config_key";
     }
+
+    my $subsite = $c->subsites->{ $self->theme_from_subsite }
+        or croak "subsite ".$self->theme_from_subsite." does not exist";
     my $subsite_theme_config = $subsite->config->{ $subsite_config_key }
         or croak "missing $subsite_config_key configuration in '".$subsite->shortname."' subsite";
     my $theme_url   = $subsite->internal_url->clone;
