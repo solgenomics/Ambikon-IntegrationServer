@@ -69,13 +69,14 @@ sub fetch_theme {
 sub _parse_theme_parts {
     my ( $self, $theme_text ) = @_;
 
-    my ( undef, $head, undef, $start_body, $end_body ) = split m( </?(?:body|head)> |  <\s*!\s*--\s*AMBIKON_CONTENT\s*--\s*> )ix, $theme_text
+    my ( undef, $head, undef, $start_body, $end_body ) = split m( </?(?:body|head)> |  <\s*!\s*--\s*AMBIKON_CONTENT\s*--\s*> )ix, $theme_text;
+
+    $head && $start_body && $end_body
        or die "could not parse theme template:\n$theme_text";
 
     $self->head( $head );
     $self->body_start( $start_body );
     $self->body_end( $end_body );
-
 }
 
 1;
