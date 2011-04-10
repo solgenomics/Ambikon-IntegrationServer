@@ -104,7 +104,8 @@ sub _instantiate_postprocessor {
 
     return $class->new({
         %{ $conf || {} },
-        _app => $self->_app,
+        _app     => $self->_app,
+        _subsite => $self,
     });
 }
 

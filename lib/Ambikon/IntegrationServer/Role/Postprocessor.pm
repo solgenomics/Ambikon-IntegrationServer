@@ -8,7 +8,14 @@ requires 'postprocess', 'can_stream';
 has '_app' => (
     is       => 'ro',
     required => 1,
+    weak_ref => 1,
 );
+
+has '_subsite' => (
+    is       => 'ro',
+    required => 1,
+    weak_ref => 1,
+    );
 
 before 'postprocess' => sub {
     my ( $self, $c ) = @_;
