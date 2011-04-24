@@ -5,6 +5,7 @@ use Test::More;
 
 use IO::String;
 use JSON::Any;  my $json = JSON::Any->new;
+use URI;
 
 use lib 't/lib';
 use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
@@ -22,7 +23,8 @@ test_proxy(
             my $env = shift;
             my $response = $json->encode({
                 hello => "Hello world!\n",
-                env => filter_env( $env )
+                env => filter_env( $env ),
+                input => $env->{'psgi.input'} ? do { local $/; $env->{'psgi.input'}->getline } : undef,
               });
 
             return [
@@ -49,12 +51,25 @@ test_proxy(
         is $mech->response->header('X-zee'), 'zaz', 'headers from backend passed through proxy';
 
         # parse our response JSON and look harder at the env that the request got
-        my $response = $json->decode( $mech->content );
-        is ref($response), 'HASH', 'successfully decoded response'
-           or diag explain $response;
-        my $request_env = $response->{env};
-        is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
-        is $request_env->{HTTP_X_CROMULENCE}, 'confirmed', 'headers from user request passed through proxy';
+        { my $response = $json->decode( $mech->content );
+          is ref($response), 'HASH', 'successfully decoded response'
+              or diag explain $response;
+          my $request_env = $response->{env};
+          is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
+          is $request_env->{HTTP_X_CROMULENCE}, 'confirmed', 'headers from user request passed through proxy';
+        }
+
+        {
+          # POST with application/x-www-form-urlencoded
+          my %post_input = ( really_long => 'REALLY_LONG_STRING_' x 20_000,
+                             foo => 'bugaboo & something else! ',
+                           );
+          $mech->post_ok( '/foo/bar/bonk', \%post_input );
+          $mech->content_contains( 'Hello world' );
+          my $response = $json->decode( $mech->content );
+          my %decoded_input = URI->new('?'.$response->{input})->query_form;
+          is_deeply \%decoded_input, \%post_input, 'POST with application/x-www-form-urlencoded works';
+        }
     },
   );
 

@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use AnyEvent::HTTP;
+use URI;
 
 BEGIN { extends 'Catalyst::Controller' }
 with 'Catalyst::Component::ApplicationAttribute';
@@ -67,12 +68,12 @@ sub make_action_code {
             );
 
         my $method  = uc $c->req->method;
-        # TODO: figure out the body properly
-        my $body    = $c->req->body || undef;
+
+        my $body    = $self->build_internal_req_body( $c, $subsite, $headers );
 
         my $cv = AnyEvent->condvar;
         my $should_stream;
-        my $body_buffer = ''; #< only used if non-streaming
+        my $response_body_buffer = ''; #< only used if non-streaming
         my $req = AnyEvent::HTTP::http_request(
             $method    => $url,
             headers    => $headers,
@@ -100,7 +101,7 @@ sub make_action_code {
                 if( $should_stream ) {
                     $c->res->write( $_[0] );
                 } else {
-                    $body_buffer .= $_[0];
+                    $response_body_buffer .= $_[0];
                 }
 
                 return 1;
@@ -113,9 +114,9 @@ sub make_action_code {
                     $c->res->body("Gateway error: $headers->{Reason}");
 
                 } else {
-                    $body_buffer ||= $data;
-                    if( defined $body_buffer && length $body_buffer ) {
-                        $c->res->body( $body_buffer );
+                    $response_body_buffer ||= $data;
+                    if( defined $response_body_buffer && length $response_body_buffer ) {
+                        $c->res->body( $response_body_buffer );
                         $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
                     }
                 }
@@ -125,6 +126,32 @@ sub make_action_code {
         );
         $cv->recv;
     }
+}
+
+
+=method build_internal_req_body
+
+figure out the body of the internal request
+
+=cut
+
+sub build_internal_req_body {
+    my ( $self, $c, $subsite, $internal_headers ) = @_;
+
+    my $type = $internal_headers->{'content-type'}
+        or return;
+
+    if( $type eq 'application/x-www-form-urlencoded' ) {
+        my $u = URI->new;
+        $u->query_form( $c->req->body_params );
+        (my $body_string = "$u") =~ s/^\?//;
+        return $body_string;
+    }
+    elsif( $type eq 'multipart/form-data' ) {
+        die 'multipart/form-data not yet handled';
+    }
+
+    return;
 }
 
 =method build_internal_req_url
