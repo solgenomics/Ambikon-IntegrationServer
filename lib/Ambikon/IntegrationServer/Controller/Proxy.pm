@@ -79,7 +79,7 @@ sub make_action_code {
             headers    => $headers,
             body       => $body,
             recurse    => 0,  # want not to treat any redirections
-            persistent => 0,
+            persistent => 1,
             proxy      => undef, # $ENV{http_proxy} causing test failures
             on_header  => sub {
                 my $headers = shift;
