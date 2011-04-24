@@ -200,8 +200,22 @@ HTTP::Headers object.
 
 sub build_external_res_headers {
     my ( $self, $c, $subsite, $headers ) = @_;
-    my %h = %$headers;
-    return HTTP::Headers->new( %h );
+    my $h = HTTP::Headers->new(  %$headers );
+
+    # trim off the internal host from a Location
+    if( my $l = $h->header( 'Location' ) ) {
+        $l = URI->new( $l )->canonical;
+        my $internal_host = $subsite->internal_url->clone->canonical;
+        $internal_host->path_query( '' );
+        if( $l =~ s/^$internal_host// ) {
+            $h->header('Location' => $l );
+        }
+    }
+
+    $h->header( URL => undef ); #< remove any URL header, this leaks
+                                #what the internal server is
+
+    return $h;
 }
 
 __PACKAGE__->meta->make_immutable;

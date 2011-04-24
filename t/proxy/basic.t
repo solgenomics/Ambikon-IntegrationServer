@@ -21,6 +21,9 @@ test_proxy(
     backends => [
         sub {
             my $env = shift;
+
+            return [ 302, ['Location' => '/foo/bar/baz'], undef] if $env->{PATH_INFO} =~ m!/redirect$!;
+
             my $response = $json->encode({
                 hello => "Hello world!\n",
                 env => filter_env( $env ),
@@ -57,6 +60,11 @@ test_proxy(
           my $request_env = $response->{env};
           is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
           is $request_env->{HTTP_X_CROMULENCE}, 'confirmed', 'headers from user request passed through proxy';
+        }
+
+        { # redirect response
+            $mech->get_ok( '/foo/redirect' );
+            $mech->content_contains( 'Hello world' );
         }
 
         {
