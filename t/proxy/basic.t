@@ -63,6 +63,7 @@ test_proxy(
           # POST with application/x-www-form-urlencoded
           my %post_input = ( really_long => 'REALLY_LONG_STRING_' x 20_000,
                              foo => 'bugaboo & something else! ',
+                             'twee zee!' => 3,
                            );
           $mech->post_ok( '/foo/bar/bonk', \%post_input );
           $mech->content_contains( 'Hello world' );
