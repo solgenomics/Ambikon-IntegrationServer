@@ -141,13 +141,13 @@ sub build_internal_req_body {
     my $type = $internal_headers->{'content-type'}
         or return;
 
-    if( $type eq 'application/x-www-form-urlencoded' ) {
+    if( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
         (my $body_string = "$u") =~ s/^\?//;
         return $body_string;
     }
-    elsif( $type eq 'multipart/form-data' ) {
+    elsif( $type =~ m!^multipart/form-data\b!i ) {
         die 'multipart/form-data not yet handled';
     }
 
