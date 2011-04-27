@@ -11,7 +11,12 @@ sub postprocess {
     my $body = $c->res->body;
 
     $self->_rewrite_tag_attr( $c, \$body, @$_ )
-        for [qw[ a href ]], [qw[ img src ]];
+        for
+           [ a      => 'href'  ],
+           [ img    => 'src'   ],
+           [ script => 'src'   ],
+           [ link   => 'href'  ],
+       ;
 
     $c->res->body( $body );
 }
