@@ -37,10 +37,10 @@ figure out the internal URL that handles a given client request
 =cut
 
 sub build_internal_req_url {
-    my ( $self, $c, $subsite ) = @_;
+    my ( $self, $c, $subsite, $url ) = @_;
 
     my $external_path = $subsite->external_path;
-    my $external_pq   = $c->req->uri->path_query;
+    my $external_pq   = $url->path_query;
 
     my $internal_url_base  = $subsite->internal_url;
     ( my $internal_url = $external_pq ) =~ s/^$external_path/$internal_url_base/
