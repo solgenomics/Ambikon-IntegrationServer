@@ -57,9 +57,9 @@ user's request headers
 =cut
 
 sub build_internal_req_headers {
-    my ( $self, $c, $subsite ) = @_;
+    my ( $self, $c, $subsite, $headers ) = @_;
 
-    my %h = %{ $c->req->headers };
+    my %h = %$headers;
     for (keys %h) {
         delete $h{$_} if /^X-Ambikon-/i;
     }

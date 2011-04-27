@@ -58,7 +58,7 @@ sub make_action_code {
         my ( $self, $c ) = @_;
 
         my $url     = $self->build_internal_req_url( $c, $subsite, $c->req->uri );
-        my $headers = $self->build_internal_req_headers( $c, $subsite );
+        my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
 
         $c->log->debug( "Ambikon proxying to internal URL: $url" )
             if $c->debug;
