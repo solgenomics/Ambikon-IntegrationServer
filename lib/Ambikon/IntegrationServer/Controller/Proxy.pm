@@ -64,7 +64,7 @@ sub make_action_code {
 
         $c->stash(
             subsite      => $subsite,
-            internal_url => $url,
+            internal_url => ref $url ? $url : URI->new( $url ),
             );
 
         my $method  = uc $c->req->method;

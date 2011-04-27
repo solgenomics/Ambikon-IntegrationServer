@@ -8,9 +8,18 @@ sub can_stream { 0 }
 sub postprocess {
     my ( $self, $c ) = @_;
 
+    my $body = $c->res->body;
 
+    $self->_rewrite_tag_attr( $c, \$body, @$_ )
+        for [qw[ a href ]], [qw[ img src ]];
 
+    $c->res->body( $body );
 }
+sub _rewrite_tag_attr {
+    my ( $self, $c, $bref, $tag, $attrname ) = @_;
+    $$bref =~ s/(< \s* $tag \s+ [^>]* $attrname \s* = \s* ["']?)([^"'\s>]+)/$1.$self->rewrite_url($c,$2)/esgix;
+}
+
 
 sub rewrite_url {
     my ( $self, $c, $url ) = @_;
@@ -47,6 +56,8 @@ sub rewrite_url {
     my $abs = $url->abs( $int_request )->canonical;
 
     ### reroot it
+    s!/+$!! for $internal_root, $external_path;
+    #warn "$abs =~ s!^$internal_root!$external_path!\n";
     (my $new_url = $abs) =~ s/^$internal_root/$external_path/
       or return $url;
     $new_url = URI->new( $new_url );

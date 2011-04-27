@@ -68,6 +68,19 @@ push @tests, (
     [ $c4, 'http://mickey.localhost/bar/1', 'http://logical.meltdown.com/foo/1'  ],
     );
 
+my $c5 = {
+    external_path => '/ted',
+    internal_root => 'http://ted.bti.cornell.edu',
+    ext_request   => 'http://logical.meltdown.com/ted',
+    int_request   => 'http://ted.bti.cornell.edu',
+};
+
+push @tests, (
+    [ $c5, '/TFGD/image/home_on.png', '/ted/TFGD/image/home_on.png' ],
+    [ $c5, 'TFGD/image/home_on.png', '/ted/TFGD/image/home_on.png' ],
+    );
+
+
 
 rewrite_ok( @$_ ) for @tests;
 
@@ -98,6 +111,14 @@ sub rewrite_ok {
   my $r = RewriteURLs->new( _app => $mock_c, _subsite => $mock_ss );
 
   is( $r->rewrite_url( $mock_c, $in ), $out, dump($in).' -> '.dump($out) );
+  my ( $bi, $bo ) = do {
+      no warnings 'uninitialized';
+      qq|<a class="snogger" href =$in > "!!lkjdf<span></span> </a>|,
+      qq|<a class="snogger" href =$out > "!!lkjdf<span></span> </a>|,
+  };
+  $r->_rewrite_tag_attr( $mock_c, \$bi, 'a', 'href' );
+  is( $bi, $bo, 'tag rewriting works' );
+
 }
 
 BEGIN {
