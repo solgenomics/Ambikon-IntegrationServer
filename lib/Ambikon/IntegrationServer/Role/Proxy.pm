@@ -88,8 +88,8 @@ sub build_external_res_headers {
         }
     }
 
-    $h->header( URL => undef ); #< remove any URL header, this leaks
-                                #what the internal server is
+    # remove some headers
+    $h->remove_header( $_ ) for qw( URL Reason Transfer-Encoding Server HTTPVersion Connection );
 
     return $h;
 }
