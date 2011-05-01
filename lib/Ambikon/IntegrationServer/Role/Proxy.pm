@@ -3,6 +3,7 @@ use Moose::Role;
 use namespace::autoclean;
 
 use HTTP::Headers ();
+use HTTP::Request::Common ();
 use URI ();
 
 =method build_internal_req_body
@@ -24,7 +25,32 @@ sub build_internal_req_body {
         return $body_string;
     }
     elsif( $type =~ m!^multipart/form-data\b!i ) {
-        die 'multipart/form-data not yet handled';
+        # use a throwaway HTTP::Request obj to make the body (yuck).
+        # upload-formatting code below is similar to
+        # Catalyst::Controller::WrapCGI
+        my $uploads = $c->req->uploads;
+        my $post = HTTP::Request::Common::POST(
+            'http://localhost/',
+            'Content_Type' => 'form-data',
+            Content => [
+                %{ $c->req->body_params || {} },
+                map {
+                    my $u = $uploads->{$_};
+                    $_ => [
+                        undef,
+                        $u->filename,
+                        Content => $u->slurp,
+                        map {
+                            my $header = $_;
+                            map { $header => $_ } $u->headers->header($header)
+                        } $u->headers->header_field_names
+                    ],
+                }
+                keys %$uploads
+            ]
+          );
+        $internal_headers->{'Content-Type'} = $post->header('Content-Type');
+        return $post->content;
     }
 
     return;

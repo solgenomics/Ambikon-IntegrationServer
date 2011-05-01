@@ -67,9 +67,8 @@ test_proxy(
             $mech->content_contains( 'Hello world' );
         }
 
-        {
-          # POST with application/x-www-form-urlencoded
-          my %post_input = ( really_long => 'REALLY_LONG_STRING_' x 20_000,
+        { # POST with application/x-www-form-urlencoded
+          my %post_input = ( really_long => 'REALLY_LONG_STRING_' x 100,
                              foo => 'bugaboo & something else! ',
                              'twee zee!' => 3,
                            );
@@ -78,6 +77,43 @@ test_proxy(
           my $response = $json->decode( $mech->content );
           my %decoded_input = URI->new('?'.$response->{input})->query_form;
           is_deeply \%decoded_input, \%post_input, 'POST with application/x-www-form-urlencoded works';
+        }
+
+        { # POST with multipart/form-data and file uploads
+          my $temp1 = File::Temp->new;
+          $temp1->print( '每个人都想成为匈牙利。' );
+          $temp1->close;
+
+          my $temp2 = File::Temp->new;
+          $temp2->print( "\nA magyarok jönnek, hogy neked, mert már nagyon haszontalan.\n" );
+          $temp2->close;
+
+          my %post_input = (
+              'Content' => [
+                  really_long => 'REALLY_LONG_STRING_' x 10,
+                  foo         => 'bugaboo & something else! ',
+                  'twee zee!' => 3,
+                  'magyarok jönnek' => [ "$temp2" ],
+                  '匈牙利华人' => [ "$temp1" ],
+                  ],
+              'Content_Type' => 'form-data',
+              );
+          $mech->post( '/foo/bar/bonk',
+                       $post_input{Content},
+                       Content_Type => 'form-data',
+                       );
+          is $mech->status, 200, 'multipart post with file uploads';
+
+          $mech->content_contains( 'Hello world' );
+          my $response = $json->decode( $mech->content );
+          is $response->{hello}, "Hello world!\n";
+
+          use utf8;
+          isnt( index( $response->{input}, '每个人都想成为匈牙利。',0 ), -1, 'found chinese content' )
+              or diag Data::Dump::dump( $response->{input} );
+          isnt( index( $response->{input}, 'A magyarok jönnek, hogy neked, mert már nagyon haszontalan.',0 ), -1, 'found hungarian content' )
+             or diag Data::Dump::dump($response->{input});
+          no utf8;
         }
     },
   );
