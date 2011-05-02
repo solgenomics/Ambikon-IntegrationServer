@@ -1,32 +1,8 @@
-package Ambikon::IntegrationServer::Postprocess::RewriteURLs;
-use Moose;
+package Ambikon::IntegrationServer::Role::URLRewriter;
+use Moose::Role;
+use URI;
 
-with 'Ambikon::IntegrationServer::Role::Postprocessor';
-
-sub can_stream { 0 }
-
-sub postprocess {
-    my ( $self, $c ) = @_;
-
-    my $body = $c->res->body;
-
-    $self->_rewrite_tag_attr( $c, \$body, @$_ )
-        for
-           [ a      => 'href'  ],
-           [ img    => 'src'   ],
-           [ script => 'src'   ],
-           [ link   => 'href'  ],
-       ;
-
-    $c->res->body( $body );
-}
-sub _rewrite_tag_attr {
-    my ( $self, $c, $bref, $tag, $attrname ) = @_;
-    $$bref =~ s/(< \s* $tag \s+ [^>]* $attrname \s* = \s* ["']?)([^"'\s>]+)/$1.$self->rewrite_url($c,$2)/esgix;
-}
-
-
-sub rewrite_url {
+sub rewrite_url_internal_to_external {
     my ( $self, $c, $url ) = @_;
 
     # don't rewrite empty URLs
@@ -79,10 +55,5 @@ sub rewrite_url {
     return $url;
 }
 
-# more complex rewriting method that can handle differing 
-sub rewrite_url_abs {
 
-}
-
-__PACKAGE__->meta->make_immutable;
 1;

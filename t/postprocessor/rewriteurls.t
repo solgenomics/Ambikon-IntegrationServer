@@ -7,7 +7,7 @@ use Test::MockObject;
 use Data::Dump 'dump';
 use URI;
 
-use aliased 'Ambikon::IntegrationServer::Postprocess::RewriteURLs';
+use aliased 'Ambikon::IntegrationServer::Postprocess::RewriteURLs::HTML' => 'RewriteURLs';
 
 my @tests;
 my $c1 = {
@@ -110,7 +110,7 @@ sub rewrite_ok {
 
   my $r = RewriteURLs->new( _app => $mock_c, _subsite => $mock_ss );
 
-  is( $r->rewrite_url( $mock_c, $in ), $out, dump($in).' -> '.dump($out) );
+  is( $r->rewrite_url_internal_to_external( $mock_c, $in ), $out, dump($in).' -> '.dump($out) );
   my ( $bi, $bo ) = do {
       no warnings 'uninitialized';
       qq|<a class="snogger" href =$in > "!!lkjdf<span></span> </a>|,
