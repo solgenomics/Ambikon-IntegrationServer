@@ -8,6 +8,7 @@ use namespace::autoclean;
 use Data::Dump 'dump';
 
 use List::MoreUtils 'any';
+use Try::Tiny;
 
 extends 'Ambikon::Subsite';
 
@@ -100,7 +101,12 @@ sub _instantiate_postprocessor {
         $rel_class,
         );
 
-    Class::MOP::load_class( $class );
+    try {
+        Class::MOP::load_class( $class )
+    } catch {
+        die "Could not load class $rel_class ($class) specified in configuration.\n\n" if /Can't locate/;
+        die $_;
+    };
 
     return $class->new({
         %{ $conf || {} },
