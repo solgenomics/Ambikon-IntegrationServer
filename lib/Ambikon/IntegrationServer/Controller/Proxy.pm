@@ -116,16 +116,16 @@ sub make_action_code {
 
                 } else {
                     $response_body_buffer ||= $data;
-                    if( defined $response_body_buffer && length $response_body_buffer ) {
-                        $c->res->body( $response_body_buffer );
-                        $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
-                    }
                 }
 
                 $cv->send;
             }
         );
         $cv->recv;
+        if( defined $response_body_buffer && length $response_body_buffer ) {
+            $c->res->body( $response_body_buffer );
+            $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
+        }
     }
 }
 
