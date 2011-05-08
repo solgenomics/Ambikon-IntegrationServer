@@ -6,8 +6,11 @@ extends 'Ambikon::IntegrationServer::Postprocess::Text::MicroTemplate';
 
 # endows this postprocessor with fetch_theme, head, body_start, and
 # body_end methods
-with 'Ambikon::IntegrationServer::Role::Postprocessor',
-     'Ambikon::IntegrationServer::Role::TemplateTheme';
+with(qw(
+           Ambikon::IntegrationServer::Role::Postprocessor
+           Ambikon::IntegrationServer::Role::Proxy
+           Ambikon::IntegrationServer::Role::TemplateTheme
+       ));
 
 # need to fetch the theme template before each render
 sub postprocess {

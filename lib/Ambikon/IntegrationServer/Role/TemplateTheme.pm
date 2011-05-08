@@ -4,10 +4,10 @@ use namespace::autoclean;
 
 use Carp;
 
-use LWP::Simple ();
+use AnyEvent::HTTP;
 use MooseX::Types::URI 'Uri';
 
-requires '_app';
+requires '_app', 'build_internal_req_headers';
 
 has 'theme_from_subsite' => (
     is       => 'rw',
@@ -59,11 +59,29 @@ sub _build_theme_url {
 sub fetch_theme {
     my ( $self, $c ) = @_;
 
-    my $theme_url  = $self->theme_url;
-    my $theme_text = LWP::Simple::get( $theme_url )
-        or croak "failed to fetch theme from internal url '$theme_url'";
+    my $subsite = $c->stash->{subsite}
+        or croak "subsite not present in stash";
 
-    $self->_parse_theme_parts( $theme_text );
+    my $theme_url = $self->theme_url;
+    my $headers   = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
+
+    my $cv = AnyEvent->condvar;
+    AnyEvent::HTTP::http_request(
+        'GET'      => $theme_url,
+        headers    => $headers,
+        persistent => 1,
+        proxy      => undef,
+        sub {
+            my ( $body, $headers ) = @_;
+            if ( $headers->{Status} == 200 ) {
+                $self->_parse_theme_parts( $body );
+            } else {
+                $c->log->error(ref($self).": HTTP $headers->{Status} fetching theme from ".$self->theme_from_subsite." subsite: $theme_url");
+            }
+            $cv->send;
+        }
+     );
+    $cv->recv;
 }
 
 sub _parse_theme_parts {
