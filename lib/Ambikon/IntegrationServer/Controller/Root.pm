@@ -37,6 +37,8 @@ sub end : Private {
     $c->forward('if_modified_since') unless $c->res->status == 304;
 }
 
+# check the if-modified-since header in the request vs the
+# last-modified header in the response, and set a 304 if possible
 sub if_modified_since : Private {
     my ( $self, $c ) = @_;
 
@@ -46,8 +48,10 @@ sub if_modified_since : Private {
             $c->res->status(304); # http not modified
             $c->res->body(''); # and empty body
             $c->res->content_length(0);
+            return 1;
         }
     }
+    return 0;
 }
 
 =head1 AUTHOR
