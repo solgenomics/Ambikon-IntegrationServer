@@ -39,7 +39,7 @@ has 'last_modified' => (
 
 after 'modify_response' => sub {
     my ( $self, $c ) = @_;
-    $c->res->headers->remove_header('ETag');
+    $c->res->headers->remove_header('ETag','Accept-Ranges');
 
     # if both the template and the current response have last-modified set,
     # set it to be the later of the two, otherwise remove it
