@@ -132,14 +132,17 @@ sub modifiers_for {
 
 }
 
-=method should_stream( $c )
+=method can_stream( $c )
 
-Return true if the data for this request should be streamed directly
-the client.
+Return true if the data for this request can be streamed to the
+client.
+
+Right now, this just tells whether all applicable SubsiteModifiers are
+streaming-capable.
 
 =cut
 
-sub should_stream {
+sub can_stream {
     my ( $self, $c ) = @_;
     my @p = $self->modifiers_for( $c );
     return 1 if all { $_->can_stream } @p;

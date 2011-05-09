@@ -90,7 +90,7 @@ sub make_action_code {
                     $c->res->headers( $self->build_external_res_headers( $c, $subsite, $res->headers ));
                 }
                 $res->{default_add_content} = 0;
-                $should_stream = $subsite->should_stream( $c ) ? 1 : 0;
+                $should_stream = $subsite->can_stream( $c ) ? 1 : 0;
                 $c->log->debug("request streaming: ".($should_stream ? 'YES' : 'NO')) if $c->debug;
                 return 1;
             });
