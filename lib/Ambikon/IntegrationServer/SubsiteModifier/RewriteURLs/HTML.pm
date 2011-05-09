@@ -6,7 +6,7 @@ with 'Ambikon::IntegrationServer::Role::URLRewriter';
 
 sub can_stream { 0 }
 
-sub postprocess {
+sub modify_response {
     my ( $self, $c ) = @_;
 
     my $body = $c->res->body;

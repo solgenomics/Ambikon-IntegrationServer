@@ -13,7 +13,7 @@ has 'arg_names' => (
 
 sub can_stream { 0 }
 
-sub postprocess {
+sub modify_response {
     my ( $self, $c ) = @_;
 
     $c->stash(

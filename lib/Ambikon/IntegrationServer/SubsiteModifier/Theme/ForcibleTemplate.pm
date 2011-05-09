@@ -13,7 +13,7 @@ with(qw(
        ));
 
 # need to fetch the theme template before each render
-sub postprocess {
+sub modify_response {
     my ( $self, $c ) = @_;
 
     $self->fetch_theme( $c );

@@ -18,7 +18,7 @@ has '+arg_names' => (
    );
 
 # need to fetch the theme template before each render
-before 'postprocess' => sub {
+before 'modify_response' => sub {
     $_[0]->fetch_theme( $_[1] );
 };
 

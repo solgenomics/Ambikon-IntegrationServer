@@ -1,7 +1,7 @@
 package Ambikon::IntegrationServer::Role::SubsiteModifier;
 use Moose::Role;
 
-sub will_postprocess { 1 }
+sub will_modify_response { 1 }
 
 has '_app' => (
     is       => 'ro',
@@ -15,7 +15,7 @@ has '_subsite' => (
     weak_ref => 1,
     );
 
-before 'postprocess' => sub {
+before 'modify_response' => sub {
     my ( $self, $c ) = @_;
 
     # any postprocessing is likely to make the original content length
@@ -24,7 +24,7 @@ before 'postprocess' => sub {
     $c->res->headers->remove_header('content-length');
 };
 
-sub postprocess {}
+sub modify_response {}
 sub can_stream  { 0 }
 
 1;
