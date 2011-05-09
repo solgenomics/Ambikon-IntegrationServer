@@ -2,7 +2,8 @@ package Ambikon::IntegrationServer::Controller::Proxy;
 use Moose;
 use namespace::autoclean;
 
-use AnyEvent::HTTP;
+use HTTP::Request;
+use LWP::UserAgent;
 use URI;
 
 BEGIN { extends 'Catalyst::Controller' }
@@ -57,75 +58,66 @@ sub make_action_code {
     return sub {
         my ( $self, $c ) = @_;
 
-        my $url     = $self->build_internal_req_url( $c, $subsite, $c->req->uri );
-        my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
+        $c->stash->{subsite} = $subsite;
 
-        $c->log->debug( "Ambikon proxying to internal URL: $url" )
+        my $req = do {
+            my $method  = uc $c->req->method;
+            my $url     = $self->build_internal_req_url( $c, $subsite, $c->req->uri );
+            my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
+            my $body    = $self->build_internal_req_body( $c, $subsite, $headers );
+            $c->stash->{internal_url} = $url;
+            $c->stash->{internal_req} = HTTP::Request->new( $method, $url, [ %$headers ], $body );
+        };
+
+        $c->log->debug( "Ambikon proxying to internal URL: ".$req->uri )
             if $c->debug;
 
-        $c->stash(
-            subsite      => $subsite,
-            internal_url => ref $url ? $url : URI->new( $url ),
-            );
-
-        my $method  = uc $c->req->method;
-
-        my $body    = $self->build_internal_req_body( $c, $subsite, $headers );
-
-        my $cv = AnyEvent->condvar;
         my $should_stream;
         my $response_body_buffer = ''; #< only used if non-streaming
-        my $req = AnyEvent::HTTP::http_request(
-            $method    => $url,
-            headers    => $headers,
-            body       => $body,
-            recurse    => 0,  # want not to treat any redirections
-            persistent => 1,
-            proxy      => undef, # $ENV{http_proxy} causing test failures
-            on_header  => sub {
-                my $headers = shift;
-                if ( $headers->{Status} !~ /^59\d+/ ) {
-                    $c->res->status( $headers->{Status} );
-                    $c->res->headers( $self->build_external_res_headers( $c, $subsite, $headers ));
+
+        my $ua = LWP::UserAgent->new;
+        $ua->max_redirect(0);
+        $ua->proxy(['http','ftp'],'');
+
+        $ua->add_handler(
+            response_header => sub {
+                my ( $res ) = @_;
+                if ( $res->code !~ /^59\d+/ ) {
+                    $c->res->status( $res->code );
+                    $c->res->headers( $self->build_external_res_headers( $c, $subsite, $res->headers ));
                 }
+                $res->{default_add_content} = 0;
+                $should_stream = $subsite->should_stream( $c ) ? 1 : 0;
+                $c->log->debug("request streaming: ".($should_stream ? 'YES' : 'NO')) if $c->debug;
                 return 1;
-            },
-            on_body => sub {
-                # we decide whether we are going to stream *when the
-                # body begins*, so that we can use the headers in our
-                # decision
-                unless( defined $should_stream ) {
-                    $should_stream = $subsite->should_stream( $c );
-                    $c->log->debug("request streaming: ".($should_stream ? 'YES' : 'NO')) if $c->debug;
-                }
+            });
+
+        $ua->add_handler(
+            response_data => sub {
+                my (undef, undef, undef, $data) = @_;
 
                 if( $should_stream ) {
-                    $c->res->write( $_[0] );
+                    $c->res->write( $data );
                 } else {
-                    $response_body_buffer .= $_[0];
+                    $response_body_buffer .= $data;
                 }
 
                 return 1;
-            },
-            sub {
-                my ($data, $headers) = @_;
-                if ( $headers->{Status} =~ /^59\d/ ) {
-                    $c->res->status(502);
-                    $c->res->content_type('text/html');
-                    $c->res->body("Gateway error: $headers->{Reason}");
+            });
 
-                } else {
-                    $response_body_buffer ||= $data;
-                }
+        my $res = $ua->simple_request( $req );
 
-                $cv->send;
+        if ( $res->code =~ /^59\d/ ) {
+            $c->res->status(502);
+            $c->res->content_type('text/html');
+            $c->res->body("Gateway error: ".$res->header('Reason'));
+        } else {
+            if( defined $response_body_buffer && length $response_body_buffer ) {
+                $c->res->body( $response_body_buffer );
             }
-        );
-        $cv->recv;
-        if( defined $response_body_buffer && length $response_body_buffer ) {
-            $c->res->body( $response_body_buffer );
-            $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
         }
+
+        $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
     }
 }
 
