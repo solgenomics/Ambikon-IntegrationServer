@@ -101,14 +101,14 @@ sub build_internal_req_headers {
 
 =method build_external_res_headers
 
-takes headers bare hashref, filters it and puts it into an
+takes HTTP::Headers object, filters it and puts it into a new
 HTTP::Headers object.
 
 =cut
 
 sub build_external_res_headers {
     my ( $self, $c, $subsite, $headers ) = @_;
-    my $h = HTTP::Headers->new(  %$headers );
+    my $h = $headers->clone;
 
     # trim off the internal host from a Location
     if( my $l = $h->header( 'Location' ) ) {
@@ -121,7 +121,18 @@ sub build_external_res_headers {
     }
 
     # remove some headers
-    $h->remove_header( $_ ) for qw( URL Reason Transfer-Encoding Server HTTPVersion Connection );
+    $h->remove_header( $_ )
+        for (
+            qw(
+                  URL
+                  Reason
+                  Transfer-Encoding
+                  Server
+                  HTTPVersion
+                  Connection
+              ),
+            ( grep /^Client-/i, $h->header_field_names ),
+            );
 
     return $h;
 }
