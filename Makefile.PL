@@ -23,6 +23,7 @@ requires      'LWP::Simple' => 0;
 requires      'Moose' => 0;
 requires      'Moose::Role' => 0;
 requires      'Moose::Util::TypeConstraints' => 0;
+requires      'MooseX::Types::URI' => 0;
 requires      'namespace::autoclean' => 0;
 test_requires 'aliased' => 0;
 test_requires 'Catalyst::Test' => 0;
