@@ -75,7 +75,7 @@ sub make_action_code {
 
         $_->modify_request( $c, $req ) for $subsite->modifiers_for( $c );
 
-        my $should_stream;
+        my $streaming_this_request;
         my $response_body_buffer = ''; #< only used if non-streaming
 
         my $ua = LWP::UserAgent->new;
@@ -90,8 +90,8 @@ sub make_action_code {
                     $c->res->headers( $self->build_external_res_headers( $c, $subsite, $res->headers ));
                 }
                 $res->{default_add_content} = 0;
-                $should_stream = $subsite->can_stream( $c ) ? 1 : 0;
-                $c->log->debug("request streaming: ".($should_stream ? 'YES' : 'NO')) if $c->debug;
+                $streaming_this_request = $self->_decide_whether_to_stream( $c, $subsite );
+                $c->log->debug("request streaming: ".($streaming_this_request ? 'YES' : 'NO')) if $c->debug;
                 return 1;
             });
 
@@ -99,7 +99,7 @@ sub make_action_code {
             response_data => sub {
                 my (undef, undef, undef, $data) = @_;
 
-                if( $should_stream ) {
+                if( $streaming_this_request ) {
                     $c->res->write( $data );
                 } else {
                     $response_body_buffer .= $data;
@@ -122,6 +122,16 @@ sub make_action_code {
 
         $_->modify_response( $c ) for $subsite->modifiers_for( $c );
     }
+}
+
+
+sub _decide_whether_to_stream {
+    my ( $self, $c, $subsite ) = @_;
+    return 0 unless $subsite->can_stream( $c );
+    my $content_length = $c->res->content_length;
+    return 1 unless defined $content_length;
+    return 0 if $content_length < 500_000;
+    return 1;
 }
 
 __PACKAGE__->meta->make_immutable;
