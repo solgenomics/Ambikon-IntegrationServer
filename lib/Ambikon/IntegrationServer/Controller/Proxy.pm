@@ -47,7 +47,7 @@ sub register_actions {
 =method make_action_code
 
 makes and returns the actual subroutine for the proxy action for a
-subsite.  Implementation using AnyEvent::HTTP.
+subsite.
 
 =cut
 
