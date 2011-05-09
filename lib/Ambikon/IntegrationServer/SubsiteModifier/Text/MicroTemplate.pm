@@ -1,7 +1,7 @@
-package Ambikon::IntegrationServer::Postprocess::Text::MicroTemplate;
+package Ambikon::IntegrationServer::SubsiteModifier::Text::MicroTemplate;
 use Moose;
 
-with 'Ambikon::IntegrationServer::Role::Postprocessor';
+with 'Ambikon::IntegrationServer::Role::SubsiteModifier';
 
 use Text::MicroTemplate ();
 

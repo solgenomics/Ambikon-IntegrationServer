@@ -1,4 +1,4 @@
-package Ambikon::IntegrationServer::Role::Postprocessor;
+package Ambikon::IntegrationServer::Role::SubsiteModifier;
 use Moose::Role;
 
 sub will_postprocess { 1 }

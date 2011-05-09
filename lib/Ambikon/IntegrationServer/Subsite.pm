@@ -97,7 +97,7 @@ sub _instantiate_modifier {
 
     my $class = Catalyst::Utils::resolve_namespace(
         undef,
-        (ref($self->_app) || $self->_app).'::Postprocess',
+        (ref($self->_app) || $self->_app).'::SubsiteModifier',
         $rel_class,
         );
 

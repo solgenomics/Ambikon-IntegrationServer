@@ -40,7 +40,7 @@ sub _build_theme_url {
        or die "either theme_url or theme_from_subsite conf var must be set for $class";
 
     my $subsite_config_key = $class;
-    { my $prefix = (ref( $c ) || $c ).'::Post[^:]+::';
+    { my $prefix = (ref( $c ) || $c ).'::SubsiteModif[^:]+::';
       $subsite_config_key =~ s/^$prefix// or die "$prefix, $subsite_config_key";
     }
 

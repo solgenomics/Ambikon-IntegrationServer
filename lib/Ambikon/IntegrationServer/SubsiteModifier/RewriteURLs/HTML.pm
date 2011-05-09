@@ -1,7 +1,7 @@
-package Ambikon::IntegrationServer::Postprocess::RewriteURLs::HTML;
+package Ambikon::IntegrationServer::SubsiteModifier::RewriteURLs::HTML;
 use Moose;
 
-with 'Ambikon::IntegrationServer::Role::Postprocessor';
+with 'Ambikon::IntegrationServer::Role::SubsiteModifier';
 with 'Ambikon::IntegrationServer::Role::URLRewriter';
 
 sub can_stream { 0 }

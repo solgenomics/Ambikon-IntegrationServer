@@ -1,13 +1,13 @@
-package Ambikon::IntegrationServer::Postprocess::Theme::ForcibleTemplate;
+package Ambikon::IntegrationServer::SubsiteModifier::Theme::ForcibleTemplate;
 use Moose;
 use namespace::autoclean;
 
-extends 'Ambikon::IntegrationServer::Postprocess::Text::MicroTemplate';
+extends 'Ambikon::IntegrationServer::SubsiteModifier::Text::MicroTemplate';
 
 # endows this postprocessor with fetch_theme, head, body_start, and
 # body_end methods
 with(qw(
-           Ambikon::IntegrationServer::Role::Postprocessor
+           Ambikon::IntegrationServer::Role::SubsiteModifier
            Ambikon::IntegrationServer::Role::Proxy
            Ambikon::IntegrationServer::Role::TemplateTheme
        ));

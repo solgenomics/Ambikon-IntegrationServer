@@ -7,7 +7,7 @@ use Test::MockObject;
 use Data::Dump 'dump';
 use URI;
 
-use aliased 'Ambikon::IntegrationServer::Postprocess::RewriteURLs::HTML' => 'RewriteURLs';
+use aliased 'Ambikon::IntegrationServer::SubsiteModifier::RewriteURLs::HTML' => 'RewriteURLs';
 
 my @tests;
 my $c1 = {

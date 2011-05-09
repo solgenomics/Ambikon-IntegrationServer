@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Test::MockObject;
 
-use aliased 'Ambikon::IntegrationServer::Postprocess::Text::MicroTemplate';
+use aliased 'Ambikon::IntegrationServer::SubsiteModifier::Text::MicroTemplate';
 
 my $mock_c = Test::MockObject->new;
 $mock_c->set_isa('Ambikon::IntegrationServer');

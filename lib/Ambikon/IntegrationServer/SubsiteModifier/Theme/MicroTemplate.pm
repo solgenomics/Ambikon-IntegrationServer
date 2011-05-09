@@ -1,8 +1,8 @@
-package Ambikon::IntegrationServer::Postprocess::Theme::MicroTemplate;
+package Ambikon::IntegrationServer::SubsiteModifier::Theme::MicroTemplate;
 use Moose;
 use namespace::autoclean;
 
-extends 'Ambikon::IntegrationServer::Postprocess::Text::MicroTemplate';
+extends 'Ambikon::IntegrationServer::SubsiteModifier::Text::MicroTemplate';
 
 # endows this postprocessor with fetch_theme, head, body_start, and
 # body_end methods
