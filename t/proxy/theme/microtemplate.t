@@ -42,7 +42,10 @@ EOC
 
             return [
                 200,
-                ['Content-type' => 'text/html'],
+                [
+                    'Content-type'  => 'text/html',
+                    'Last-Modified' => 'Mon, 09 May 2011 20:49:20 GMT',
+                ],
                 [ <<'EOTHEME' ],
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -80,6 +83,7 @@ EOTHEME
                     [ 'Content-type' => 'text/html',
                       'X-bar'  => 'fogbat',
                       'X-zee'  => 'zaz',
+                      'Last-Modified' => 'Mon, 09 May 2011 18:21:11 GMT',
                     ],
                     [ <<'EOH' ]],
 <html>
@@ -108,6 +112,7 @@ EOH
         $mech->content_lacks( '$theme', 'templating was run' );
         $mech->content_lacks('&lt;', 'no funny quoting' );
         $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'template was inserted' );
+        is $mech->response->headers->header('Last-Modified'), 'Mon, 09 May 2011 20:49:20 GMT', 'got right last-modified';
         $mech->html_lint_ok;
     },
   );

@@ -5,9 +5,11 @@ use namespace::autoclean;
 use Carp;
 
 use AnyEvent::HTTP;
+use List::Util 'max';
 use MooseX::Types::URI 'Uri';
+use MooseX::Types::DateTimeX 'DateTime';
 
-requires '_app', 'build_internal_req_headers';
+requires '_app', 'build_internal_req_headers', 'modify_response';
 
 has 'theme_from_subsite' => (
     is       => 'rw',
@@ -28,6 +30,26 @@ for (qw( head body_start body_end )) {
         isa => 'Str',
         );
 }
+
+has 'last_modified' => (
+    is  => 'rw',
+    isa => DateTime,
+    coerce => 1,
+  );
+
+after 'modify_response' => sub {
+    my ( $self, $c ) = @_;
+    $c->res->headers->remove_header('ETag');
+
+    # if both the template and the current response have last-modified set,
+    # set it to be the later of the two, otherwise remove it
+    my $res_modified = $c->res->headers->last_modified;
+    $c->res->headers->remove_header('Last-Modified');
+    if( $res_modified && $self->last_modified ) {
+        $c->res->headers->last_modified( max $self->last_modified->epoch, $res_modified );
+    }
+
+};
 
 # infers the theme_url from other conf vars if necessary
 sub _build_theme_url {
@@ -75,6 +97,7 @@ sub fetch_theme {
             my ( $body, $headers ) = @_;
             if ( $headers->{Status} == 200 ) {
                 $self->_parse_theme_parts( $body );
+                $self->last_modified( $headers->{'last-modified'} ) if $headers->{'last-modified'};
             } else {
                 $c->log->error(ref($self).": HTTP $headers->{Status} fetching theme from ".$self->theme_from_subsite." subsite: $theme_url");
             }

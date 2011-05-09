@@ -52,7 +52,10 @@ test_proxy(
 
             return [
                 200,
-                ['Content-type' => 'text/html'],
+                [
+                    'Content-type' => 'text/html',
+                    'Last-Modified' => 'Mon, 09 May 2011 22:21:11 GMT',
+                ],
                 [ <<'EOTHEME' ],
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
@@ -90,6 +93,7 @@ EOTHEME
                     [ 'Content-type' => 'text/html',
                       'X-bar'  => 'fogbat',
                       'X-zee'  => 'zaz',
+                      'Last-Modified' => 'Mon, 09 May 2011 19:02:00 GMT',
                     ],
                     [ slurp( 't/data/unmodified_1.html' )]],
               );
@@ -104,6 +108,7 @@ EOTHEME
         $mech->content_contains('Tomato Functional') unless $ENV{FORCE_EXTERNAL_SITE};
         $mech->content_lacks('&lt;', 'no funny quoting' );
         $mech->content_contains( '<link rel="stylesheet" href="/fictitious/stylesheet.css" />', 'got template head' );
+        is $mech->response->headers->header('Last-Modified'), 'Mon, 09 May 2011 22:21:11 GMT', 'got right last-modified';
         $mech->content_contains( '<div id="outercontainer">', 'got template body start' );
         $mech->content_contains( 'and this is another comment', 'got template body end' );
         $mech->content_contains('</html>');
