@@ -3,8 +3,6 @@ use Moose::Role;
 
 sub will_postprocess { 1 }
 
-requires 'postprocess', 'can_stream';
-
 has '_app' => (
     is       => 'ro',
     required => 1,
@@ -25,5 +23,8 @@ before 'postprocess' => sub {
     # when it actually sends the response.
     $c->res->headers->remove_header('content-length');
 };
+
+sub postprocess {}
+sub can_stream  { 0 }
 
 1;
