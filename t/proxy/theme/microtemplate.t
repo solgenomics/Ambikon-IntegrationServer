@@ -24,14 +24,14 @@ theme_from_subsite  mainsite
   internal_url   http://$host:$port2/monkeys
   external_path  /foo
 
-  <postprocess>
+  <modify>
       when content_type:text/html
       with Theme::MicroTemplate
 
       <Theme::MicroTemplate>
           theme_from_subsite mainsite
       </Theme::MicroTemplate>
-  </postprocess>
+  </modify>
 </subsite>
 
 EOC

@@ -7,7 +7,7 @@ use namespace::autoclean;
 
 use Data::Dump 'dump';
 
-use List::MoreUtils 'any';
+use List::MoreUtils 'all';
 use Try::Tiny;
 
 extends 'Ambikon::Subsite';
@@ -19,42 +19,42 @@ has '_app' => (
    weak_ref => 1,
   );
 
-=attr postprocess_conf
+=attr modify_conf
 
-Configuration data for this subsite's request postprocessing.
+Configuration data for this subsite's modifiers.
 
 =cut
 
-has 'postprocess_conf' => (
+has 'modify_conf' => (
     is       => 'ro',
     isa      => 'HashRef|ArrayRef',
-    init_arg => 'postprocess',
+    init_arg => 'modify',
     default  => sub {
         +{}
     },
   );
 
-has '_postprocessor_groups' => (
+has '_modifier_groups' => (
     is      => 'ro',
     isa     => 'ArrayRef',
     lazy    => 1,
-    builder => '_setup_postprocessor_groups',
+    builder => '_setup_modifier_groups',
     traits  => ['Array'],
     handles => {
-        'postprocessor_groups' => 'elements',
+        'modifier_groups' => 'elements',
     },
 );
 
-# make sure the postprocessors are set up after the object is
+# make sure the modifiers are set up after the object is
 # constructed (want to do this at startup time)
 sub BUILD {
-    shift->_postprocessor_groups;
+    shift->_modifier_groups;
 }
 
 sub to_list($) {
     ref $_[0] eq 'ARRAY' ? @{$_[0]}: $_[0];
 }
-sub _setup_postprocessor_groups {
+sub _setup_modifier_groups {
     my ( $self ) = @_;
 
     return [
@@ -65,11 +65,11 @@ sub _setup_postprocessor_groups {
             my @pp_objects = map {
                 my $conf_key = my $rel_class = $_;
                 $conf_key =~ s/^\W//;
-                $self->_instantiate_postprocessor( $rel_class, $conf->{$conf_key} )
+                $self->_instantiate_modifier( $rel_class, $conf->{$conf_key} )
             } to_list( $conf->{with} || [] );
 
-            { rule => $rule, postprocessors => \@pp_objects };
-        } to_list $self->postprocess_conf
+            { rule => $rule, modifiers => \@pp_objects };
+        } to_list $self->modify_conf
     ];
 }
 
@@ -88,10 +88,10 @@ sub _make_rule {
         };
     }
 
-    die "invalid postprocessing 'when' rule: '$rule_string'";
+    die "invalid modifier 'when' rule: '$rule_string'";
 }
 
-sub _instantiate_postprocessor {
+sub _instantiate_modifier {
     my ( $self, $rel_class, $conf ) = @_;
 #    die dump( $self );
 
@@ -115,20 +115,20 @@ sub _instantiate_postprocessor {
     });
 }
 
-=method postprocessors_for( $c )
+=method modifiers_for( $c )
 
-return the list of postprocessor objects that should be applied to
-data in the given request
+return the list of modifier objects that should be applied to
+the given subsite request/response
 
 =cut
 
-sub postprocessors_for {
+sub modifiers_for {
     my ( $self, $c ) = @_;
 
     return
-        map @{ $_->{postprocessors} || [] },
+        map @{ $_->{modifiers} || [] },
         grep $_->{rule}->( $self, $c ),
-        $self->postprocessor_groups;
+        $self->modifier_groups;
 
 }
 
@@ -141,9 +141,9 @@ the client.
 
 sub should_stream {
     my ( $self, $c ) = @_;
-    my @p = $self->postprocessors_for( $c );
-    return 0 if any { ! $_->can_stream } @p;
-    return 1;
+    my @p = $self->modifiers_for( $c );
+    return 1 if all { $_->can_stream } @p;
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;

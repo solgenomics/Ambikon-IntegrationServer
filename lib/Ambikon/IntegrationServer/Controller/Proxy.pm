@@ -117,7 +117,7 @@ sub make_action_code {
             }
         }
 
-        $_->postprocess( $c ) for $subsite->postprocessors_for( $c );
+        $_->postprocess( $c ) for $subsite->modifiers_for( $c );
     }
 }
 

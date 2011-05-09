@@ -29,14 +29,14 @@ EOC
 
   external_path  /foo
 
-  <postprocess>
+  <modify>
       when content_type:text/html
       with Theme::ForcibleTemplate
 
       <Theme::ForcibleTemplate>
           theme_from_subsite mainsite
       </Theme::ForcibleTemplate>
-  </postprocess>
+  </modify>
 </subsite>
 EOC
     ;
