@@ -90,6 +90,10 @@ sub build_internal_req_headers {
         delete $h{$_} if /^X-Ambikon-/i;
     }
 
+    # add an X-Forwarded-For
+    $h{'X-Forwarded-For'} .= ', ' if $h{'X-Forwarded-For'};
+    $h{'X-Forwarded-For'} .= $c->req->hostname || $c->req->address;
+
     return \%h;
 }
 

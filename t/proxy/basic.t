@@ -60,6 +60,7 @@ test_proxy(
           my $request_env = $response->{env};
           is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
           is $request_env->{HTTP_X_CROMULENCE}, 'confirmed', 'headers from user request passed through proxy';
+          like $request_env->{HTTP_X_FORWARDED_FOR}, qr/^\w+$/, 'got X-Forwarded-For header also';
         }
 
         { # redirect response
