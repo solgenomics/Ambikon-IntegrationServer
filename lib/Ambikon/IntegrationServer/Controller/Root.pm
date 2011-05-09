@@ -42,7 +42,7 @@ sub if_modified_since : Private {
 
     if( my $since = $c->req->headers->if_modified_since ) {
         my $modtime = $c->res->headers->last_modified;
-        if( $modtime <= $since ) {
+        if( $modtime && $modtime <= $since ) {
             $c->res->status(304); # http not modified
             $c->res->body(''); # and empty body
             $c->res->content_length(0);
