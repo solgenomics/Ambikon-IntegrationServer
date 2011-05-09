@@ -85,16 +85,18 @@ user's request headers
 sub build_internal_req_headers {
     my ( $self, $c, $subsite, $headers ) = @_;
 
-    my %h = %$headers;
-    for (keys %h) {
-        delete $h{$_} if /^X-Ambikon-/i;
-    }
+    $headers = $headers->clone;
+
+    my @header_names = $headers->header_field_names;
+    $headers->remove_header(
+        'If-Modified-Since',
+        ( grep /^X-Ambikon/, @header_names ),
+      );
 
     # add an X-Forwarded-For
-    $h{'X-Forwarded-For'} .= ', ' if $h{'X-Forwarded-For'};
-    $h{'X-Forwarded-For'} .= $c->req->hostname || $c->req->address;
+    $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
 
-    return \%h;
+    return $headers;
 }
 
 =method build_external_res_headers
