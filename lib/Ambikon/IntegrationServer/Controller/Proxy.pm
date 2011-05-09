@@ -73,7 +73,7 @@ sub make_action_code {
         $c->log->debug( "Ambikon proxying to internal URL: ".$req->uri )
             if $c->debug;
 
-        $_->modify_request( $req ) for $subsite->modifiers_for( $c );
+        $_->modify_request( $c, $req ) for $subsite->modifiers_for( $c );
 
         my $should_stream;
         my $response_body_buffer = ''; #< only used if non-streaming
