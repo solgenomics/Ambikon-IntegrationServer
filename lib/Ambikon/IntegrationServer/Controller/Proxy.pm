@@ -65,9 +65,10 @@ sub make_action_code {
             my $url     = $self->build_internal_req_url( $c, $subsite, $c->req->uri );
             my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
             my $body    = $self->build_internal_req_body( $c, $subsite, $headers );
-            $c->stash->{internal_url} = $url;
-            $c->stash->{internal_req} = HTTP::Request->new( $method, $url, [ %$headers ], $body );
+            HTTP::Request->new( $method, $url, [ %$headers ], $body );
         };
+
+        @{$c->stash}{'internal_request','internal_url'} = ( $req, $req->uri );
 
         $c->log->debug( "Ambikon proxying to internal URL: ".$req->uri )
             if $c->debug;
