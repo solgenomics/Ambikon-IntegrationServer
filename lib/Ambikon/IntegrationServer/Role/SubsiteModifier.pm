@@ -24,7 +24,8 @@ before 'modify_response' => sub {
     $c->res->headers->remove_header('content-length');
 };
 
+sub modify_request  {}
 sub modify_response {}
-sub can_stream  { 0 }
+sub can_stream      { 0 }
 
 1;
