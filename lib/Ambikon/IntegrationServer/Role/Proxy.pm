@@ -15,13 +15,14 @@ figure out the body of the internal request
 sub build_internal_req_body {
     my ( $self, $c, $subsite, $internal_headers ) = @_;
 
-    my $type = $internal_headers->{'content-type'}
+    my $type = $internal_headers->header('content-type')
         or return;
 
     if( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
         (my $body_string = "$u") =~ s/^\?//;
+        $internal_headers->content_length( length $body_string );
         return $body_string;
     }
     elsif( $type =~ m!^multipart/form-data\b!i ) {
@@ -49,7 +50,8 @@ sub build_internal_req_body {
                 keys %$uploads
             ]
           );
-        $internal_headers->{'Content-Type'} = $post->header('Content-Type');
+        $internal_headers->header( 'Content-Type', $post->header('Content-Type') );
+        $internal_headers->content_length( $post->headers->content_length );
         return $post->content;
     }
 
@@ -89,6 +91,7 @@ sub build_internal_req_headers {
 
     my @header_names = $headers->header_field_names;
     $headers->remove_header(
+        'Content-Length',
         'If-Modified-Since',
         ( grep /^X-Ambikon/, @header_names ),
       );

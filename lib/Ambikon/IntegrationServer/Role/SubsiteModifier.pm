@@ -21,7 +21,7 @@ before 'modify_response' => sub {
     # any postprocessing is likely to make the original content length
     # wrong.  If we undef it here, Catalyst will recalculate it for us
     # when it actually sends the response.
-    $c->res->headers->remove_header('content-length');
+    $c->res->headers->remove_header('Content-Length');
 };
 
 sub modify_request  {}
