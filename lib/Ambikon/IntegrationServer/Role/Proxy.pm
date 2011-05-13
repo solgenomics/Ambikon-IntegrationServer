@@ -99,6 +99,7 @@ sub build_internal_req_headers {
     # add an X-Forwarded-For
     $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
     $headers->push_header( 'Via', $self->_via_str($c) );
+    $headers->header( 'X-Ambikon', $c->version);
 
     return $headers;
 }
@@ -139,7 +140,9 @@ sub build_external_res_headers {
               ),
             ( grep /^Client-/i, $h->header_field_names ),
             );
+
     $h->push_header( 'Via', $self->_via_str($c));
+    $h->header( 'X-Ambikon', $c->version);
 
     return $h;
 }
