@@ -13,10 +13,11 @@ sub modify_response {
 
     $self->_rewrite_tag_attr( $c, \$body, @$_ )
         for
-           [ a      => 'href'  ],
-           [ img    => 'src'   ],
-           [ script => 'src'   ],
-           [ link   => 'href'  ],
+           [ a      => 'href'   ],
+           [ img    => 'src'    ],
+           [ script => 'src'    ],
+           [ link   => 'href'   ],
+           [ form   => 'action' ],
        ;
 
     $c->res->body( $body );
