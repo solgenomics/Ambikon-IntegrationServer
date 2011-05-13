@@ -16,6 +16,10 @@ extends 'Catalyst';
 
 our $VERSION = '0.01';
 
+sub version {
+    (our $VERSION) || 'dev'
+}
+
 __PACKAGE__->config(
     name => 'Ambikon::IntegrationServer',
     # Disable deprecated behavior needed by old applications
