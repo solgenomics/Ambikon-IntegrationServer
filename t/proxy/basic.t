@@ -78,6 +78,8 @@ test_proxy(
           my $response = $json->decode( $mech->content );
           my %decoded_input = URI->new('?'.$response->{input})->query_form;
           is_deeply \%decoded_input, \%post_input, 'POST with application/x-www-form-urlencoded works';
+          is $response->{env}{CONTENT_LENGTH}, length( $response->{input} ), 'got right content-length for x-www-form-urlencoded internal request';
+
         }
 
         { # POST with multipart/form-data and file uploads
