@@ -133,6 +133,8 @@ sub build_external_res_headers {
                   Server
                   HTTPVersion
                   Connection
+                  TE
+                  Trailer
               ),
             ( grep /^Client-/i, $h->header_field_names ),
             );
