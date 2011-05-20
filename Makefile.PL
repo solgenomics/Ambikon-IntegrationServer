@@ -26,6 +26,7 @@ requires      'Moose::Util::TypeConstraints' => 0;
 requires      'MooseX::Types::DateTimeX' => 0;
 requires      'MooseX::Types::URI' => 0;
 requires      'namespace::autoclean' => 0;
+requires      'Text::MicroTemplate' => 0;
 test_requires 'aliased' => 0;
 test_requires 'Catalyst::Test' => 0;
 test_requires 'File::Temp' => 0;
