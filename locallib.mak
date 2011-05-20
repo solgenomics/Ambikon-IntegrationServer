@@ -25,3 +25,5 @@ inc/: Makefile.PL
 
 clean:
 	rm -rf .tmp_ll $(LL_NAME) .dists.list.tmp;
+
+.PHONY: $(LL_NAME)
