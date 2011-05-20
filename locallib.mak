@@ -12,11 +12,11 @@ all: $(LL_NAME)
 $(LL_NAME): inc/  Makefile.PL
 	mkdir -p $(DPAN);
 	# try first to installdeps from our DPAN as much as possible
-	-cpanm -n                        -L $(LL_NAME) --mirror $(DPAN)        --mirror-only --installdeps .;
+	-cpanm                        -L $(LL_NAME) --mirror $(DPAN)        --mirror-only --installdeps .;
 	# install the blacklisted modules from the upstream mirror without trying to save them in the dpan
-	cpanm -n -q                      -L $(LL_NAME) --mirror $(CPAN_MIRROR) --mirror-only $(DPAN_BLACKLIST);
+	cpanm -q                      -L $(LL_NAME) --mirror $(CPAN_MIRROR) --mirror-only $(DPAN_BLACKLIST);
 	# then try to installdeps from the upstream mirror, saving stuff in the dpan
-	cpanm -n -q --save-dists $(DPAN) -L $(LL_NAME) --mirror $(CPAN_MIRROR) --mirror-only --installdeps .;
+	cpanm -q --save-dists $(DPAN) -L $(LL_NAME) --mirror $(CPAN_MIRROR) --mirror-only --installdeps .;
 	# and update the dpan indexes for our next run
 	cd $(DPAN) && dpan
 
