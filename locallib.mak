@@ -6,7 +6,7 @@ DPAN         := $(PWD)/dpan
 DISTS_LIST   := $(DPAN)/dists.list
 
 MISSING_DEPS   := List::MoreUtils
-DPAN_BLACKLIST := JSON::PP common::sense
+DPAN_BLACKLIST := JSON::PP common::sense HTML::Parser
 
 all: $(LL_NAME)
 
