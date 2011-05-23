@@ -1,6 +1,6 @@
 CPANM        := cpanm -q -n
-#CPAN_MIRROR := http://cpan.sgn.cornell.edu/CPAN/
-CPAN_MIRROR  := /data/shared/cpan-mirror/cpan
+CPAN_MIRROR := http://cpan.sgn.cornell.edu/CPAN/
+#CPAN_MIRROR  := /data/shared/cpan-mirror/cpan
 LL_NAME      := $(PWD)/extlibs
 DPAN         := $(PWD)/dpan
 DISTS_LIST   := $(DPAN)/dists.list
