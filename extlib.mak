@@ -1,7 +1,7 @@
 CPANM        := cpanm -q -n
 CPAN_MIRROR := http://cpan.sgn.cornell.edu/CPAN/
 #CPAN_MIRROR  := /data/shared/cpan-mirror/cpan
-LL_NAME      := $(PWD)/extlibs
+LL_NAME      := $(PWD)/extlib
 DPAN         := $(PWD)/dpan
 
 MISSING_DEPS   := List::MoreUtils
