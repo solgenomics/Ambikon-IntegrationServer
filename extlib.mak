@@ -9,7 +9,7 @@ DPAN_BLACKLIST := JSON::PP common::sense HTML::Parser
 
 all: $(LL_NAME)
 
-$(LL_NAME): inc/  Makefile.PL
+$(LL_NAME): Makefile.PL META.yml
 	mkdir -p $(DPAN);
 	# install the blacklisted modules from the upstream mirror without trying to use the dpan
 	$(CPANM)                      -L $(LL_NAME) --mirror $(CPAN_MIRROR) --mirror-only $(DPAN_BLACKLIST);
@@ -20,7 +20,7 @@ $(LL_NAME): inc/  Makefile.PL
 	# and update the dpan indexes for our next run
 	cd $(DPAN) && dpan
 
-inc/: Makefile.PL
+META.yml: Makefile.PL
 	perl Makefile.PL < /dev/null
 
 clean:
