@@ -3,7 +3,6 @@ CPAN_MIRROR := http://cpan.sgn.cornell.edu/CPAN/
 #CPAN_MIRROR  := /data/shared/cpan-mirror/cpan
 LL_NAME      := $(PWD)/extlibs
 DPAN         := $(PWD)/dpan
-DISTS_LIST   := $(DPAN)/dists.list
 
 MISSING_DEPS   := List::MoreUtils
 DPAN_BLACKLIST := JSON::PP common::sense HTML::Parser
