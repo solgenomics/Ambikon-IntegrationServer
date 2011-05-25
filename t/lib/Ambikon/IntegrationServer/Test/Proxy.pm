@@ -64,7 +64,7 @@ sub test_proxy {
 
             require Ambikon::IntegrationServer;
             Ambikon::IntegrationServer->setup_engine('HTTP');
-            Ambikon::IntegrationServer->run( $ambikon_port );
+            Ambikon::IntegrationServer->run( $ambikon_port, $host, { 'fork' => 1 } );
         },
       );
 

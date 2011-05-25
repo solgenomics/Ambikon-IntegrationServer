@@ -43,6 +43,6 @@ test_proxy(
         my $mech = shift;
         $mech->get('/');
         is( $mech->status, 500 );
-        diag $mech->content;
+	done_testing;
     },
   );
