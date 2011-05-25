@@ -10,7 +10,7 @@ use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
 # test a basic conf with 1 backend
 test_proxy(
     conf => <<'',
-<subsite loopy>
+<subsite cycle_detection_test>
   internal_url   http://$host:$ambikon_port/foo/bar
   external_path  /
 </subsite>

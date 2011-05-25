@@ -62,6 +62,9 @@ sub test_proxy {
                 $ENV{CATALYST_CONFIG} = $temp_conf->filename;
             }
 
+            close STDOUT;
+            close STDERR;
+
             require Ambikon::IntegrationServer;
             Ambikon::IntegrationServer->setup_engine('HTTP');
             Ambikon::IntegrationServer->run( $ambikon_port, $host, { 'fork' => 1 } );
