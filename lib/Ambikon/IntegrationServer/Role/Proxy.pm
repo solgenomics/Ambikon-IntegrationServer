@@ -141,7 +141,13 @@ sub build_external_res_headers {
             ( grep /^Client-/i, $h->header_field_names ),
             );
 
-    $h->push_header( 'Via', $self->_via_str($c));
+    my $via = $self->_via_str( $c );
+    if( my $existing_via = $h->header('Via') ) {
+        index( $existing_via, $via ) == -1
+            or die "Looping Ambikon self-requests detected, please check your Ambikon server configuration.\n";
+    }
+
+    $h->push_header( 'Via', $via );
     $h->header( 'X-Ambikon', $c->version);
 
     return $h;
