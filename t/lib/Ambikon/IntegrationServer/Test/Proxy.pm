@@ -18,6 +18,7 @@ sub test_proxy {
     my $backends = $args{backends} or die 'no backends';
     $backends = [ $backends ] unless ref $backends eq 'ARRAY';
 
+    # start the backend servers
     my @servers = map {
         my $backend_code = $_;
         my $test_server = Test::TCP->new(
@@ -30,39 +31,50 @@ sub test_proxy {
           );
       } @$backends;
 
-    my $port  = $servers[0]->port;
-    my $port1 = $servers[0]->port;
-    my ( $port2, $port3 );
-    $port2 = $servers[1]->port if $servers[1];
-    $port3 = $servers[2]->port if $servers[2];
-    my $configuration = ref $args{conf}
-        ? $args{conf}->( \@servers )
-        : eval qq|"$args{conf}"|;
-    die $@ if $@;
-
-    # make a temp catalyst config file to feed it
-    my $temp_conf;
-    if ( $configuration ) {
-        $temp_conf = File::Temp->new( SUFFIX => '.conf' );
-        $temp_conf->print( $configuration );
-        $temp_conf->close;
-        $ENV{CATALYST_CONFIG} = $temp_conf->filename;
-    }
-
-    # start a catalyst server
+    # start an ambikon server
     my $ambikon_server = Test::TCP->new(
         code => sub {
-            my ( $port ) = @_;
+            my ( $ambikon_port ) = @_;
+
+            my $configuration_text = ref $args{conf}
+                ? $args{conf}->( \@servers )
+                : do {
+                    # set up some additional variables that can interpolate in
+                    my $port  = $servers[0]->port;
+                    my $port1 = $servers[0]->port;
+                    my ( $port2, $port3 );
+                    $port2 = $servers[1]->port if $servers[1];
+                    $port3 = $servers[2]->port if $servers[2];
+
+                    my $interpolated_text = eval qq|"$args{conf}"|;
+                    die $@ if $@;
+                    $interpolated_text
+                };
+
+            # make a temp catalyst config file to feed the integration
+            # server app
+            my $temp_conf;
+            local $ENV{CATALYST_CONFIG};
+            if ( $configuration_text ) {
+                $temp_conf = File::Temp->new( SUFFIX => '.conf' );
+                $temp_conf->print( $configuration_text );
+                $temp_conf->close;
+                $ENV{CATALYST_CONFIG} = $temp_conf->filename;
+            }
+
             require Ambikon::IntegrationServer;
             Ambikon::IntegrationServer->setup_engine('HTTP');
-            Ambikon::IntegrationServer->run( $port );
+            Ambikon::IntegrationServer->run( $ambikon_port );
         },
       );
 
-    local $ENV{CATALYST_SERVER} = 'http://localhost:'.$ambikon_server->port;
+    # set up a mech to point at the ambikon server
+    local $ENV{CATALYST_SERVER} = "http://$host:".$ambikon_server->port;
+    my $mech = Ambikon::IntegrationServer::Test::WWWMechanize->new(
+        catalyst_app => 'Ambikon::IntegrationServer',
+        );
 
-    my $mech = Ambikon::IntegrationServer::Test::WWWMechanize->new( catalyst_app => 'Ambikon::IntegrationServer' );
-
+    # call the client code with the configured mech
     $args{client}->( $mech );
 }
 
