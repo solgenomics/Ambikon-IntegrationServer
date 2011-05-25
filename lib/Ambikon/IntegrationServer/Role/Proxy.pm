@@ -92,6 +92,7 @@ sub build_internal_req_headers {
     my @header_names = $headers->header_field_names;
     $headers->remove_header(
         'Content-Length',
+	'Accept-Encoding',
         'If-Modified-Since',
         ( grep /^X-Ambikon/, @header_names ),
       );
