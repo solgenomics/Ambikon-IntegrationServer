@@ -88,13 +88,12 @@ sub build_internal_req_headers {
     my ( $self, $c, $subsite, $headers ) = @_;
 
     $headers = $headers->clone;
-
     my @header_names = $headers->header_field_names;
     $headers->remove_header(
         'Content-Length',
 	'Accept-Encoding',
         'If-Modified-Since',
-        ( grep /^X-Ambikon/, @header_names ),
+        ( grep /^X-Ambikon/i, @header_names ),
       );
 
     # add an X-Forwarded-For
