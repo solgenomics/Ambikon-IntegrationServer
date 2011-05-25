@@ -144,6 +144,7 @@ sub build_external_res_headers {
                   Connection
                   TE
                   Trailer
+                  Vary
               ),
             ( grep /^Client-/i, $h->header_field_names ),
             );
