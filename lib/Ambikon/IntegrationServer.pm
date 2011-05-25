@@ -60,7 +60,9 @@ Ambikon::IntegrationServer - the Ambikon integration server
 
 The Ambikon integration server is a fast frontend web application for
 integrating other web applications.  Existing web applications can run
-unmodified under Ambikon.
+unmodified under Ambikon.  Web applications that are Ambikon-aware can
+use it as a central point of exchange for communicating with other web
+applications running as part of the same web site.
 
 =cut
 
