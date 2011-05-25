@@ -13,12 +13,12 @@ with(qw(
        ));
 
 # need to fetch the theme template before each render
-sub modify_response {
+before 'modify_response' => sub {
     my ( $self, $c ) = @_;
 
     $self->fetch_theme( $c );
     $self->force_apply_theme( $c );
-}
+};
 
 sub force_apply_theme {
     my ( $self, $c ) = @_;

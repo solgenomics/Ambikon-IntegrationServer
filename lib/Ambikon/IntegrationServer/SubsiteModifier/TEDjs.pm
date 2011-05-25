@@ -4,7 +4,8 @@ use Moose;
 extends 'Ambikon::IntegrationServer::SubsiteModifier::RewriteURLs::HTML';
 
 sub can_stream { 0 }
-sub modify_response {
+
+before modify_response => sub {
     my ( $self, $c ) = @_;
 
     return unless $c->req->uri =~ /menu\.js/;
@@ -17,6 +18,6 @@ sub modify_response {
         ;
 
     $c->res->body( $body );
-}
+};
 
 1;
