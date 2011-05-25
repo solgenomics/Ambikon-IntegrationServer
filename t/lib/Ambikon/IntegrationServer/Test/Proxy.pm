@@ -53,11 +53,9 @@ sub test_proxy {
     my $ambikon_server = Test::TCP->new(
         code => sub {
             my ( $port ) = @_;
-            local $ENV{PLACK_SERVER} = 'Standalone';
-            my $plack = Plack::Loader->auto( port => $port, host => $host );
             require Ambikon::IntegrationServer;
-            Ambikon::IntegrationServer->setup_engine('PSGI');
-            $plack->run( sub { Ambikon::IntegrationServer->run(@_) } );
+            Ambikon::IntegrationServer->setup_engine('HTTP');
+            Ambikon::IntegrationServer->run( $port );
         },
       );
 
