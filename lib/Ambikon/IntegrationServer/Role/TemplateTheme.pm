@@ -99,7 +99,7 @@ sub fetch_theme {
                 $self->_parse_theme_parts( $body );
                 $self->last_modified( $headers->{'last-modified'} ) if $headers->{'last-modified'};
             } else {
-                $c->log->error(ref($self).": HTTP $headers->{Status} fetching theme from ".$self->theme_from_subsite." subsite: $theme_url");
+                $c->log->error(ref($self).": HTTP $headers->{Status} fetching theme from ".($self->theme_from_subsite || 'manually-specified')." back end URL: $theme_url");
             }
             $cv->send;
         }
