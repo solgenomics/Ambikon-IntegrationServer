@@ -29,6 +29,8 @@ sub build_internal_req_body {
         # use a throwaway HTTP::Request obj to make the body (yuck).
         # upload-formatting code below is similar to
         # Catalyst::Controller::WrapCGI
+
+        local $HTTP::Request::Common::DYNAMIC_FILE_UPLOAD = 1;
         my $uploads = $c->req->uploads;
         my $post = HTTP::Request::Common::POST(
             'http://localhost/',
@@ -38,9 +40,8 @@ sub build_internal_req_body {
                 map {
                     my $u = $uploads->{$_};
                     $_ => [
-                        undef,
+                        $u->tempname,
                         $u->filename,
-                        Content => $u->slurp,
                         map {
                             my $header = $_;
                             map { $header => $_ } $u->headers->header($header)
