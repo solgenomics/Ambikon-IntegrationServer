@@ -63,6 +63,11 @@ EOC
         # check that a pathless internal_url works
         $mech->get_ok( '/fooey' );
         $mech->content_contains('root backend', 'pathless internal url sems to work');
+
+        for my $root_static ( qw( favicon.ico robots.txt ) ) {
+            $mech->get_ok( "/$root_static" );
+            $mech->content_contains('root backend', "$root_static is not intercepted by Static::Simple");
+        }
     },
 );
 
