@@ -69,6 +69,7 @@ sub build_internal_req_url {
     my ( $self, $c, $subsite, $url ) = @_;
 
     my $external_path = $subsite->external_path;
+    $external_path = '' if ! defined $external_path || $external_path eq '/';
     my $external_pq   = $url->path_query;
 
     my $internal_url_base  = $subsite->internal_url;

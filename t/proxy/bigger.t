@@ -27,12 +27,19 @@ test_proxy(
   internal_url http://$host:$port3
   external_path /other
 </subsite>
+<subsite the_root>
+  name Subsite at the Root!
+  # the root also has a path-less internal_url
+  internal_url http://$host:$port4
+  external_path /
+</subsite>
 EOC
 
     backends => [
         sub { [ 200, [], [ $json->encode( filter_env( { %{+shift}, hi => 'Tweedle dum here' }))]]},
         sub { [ 404, [], ['Tweedle dee has no pages!'                                          ]]},
         sub { [ 500, [], ['And the other one always crashes!'                                  ]]},
+        sub { [ 200, [], ['This is the root backend'                                           ]]},
       ],
 
     client => sub {
@@ -52,6 +59,10 @@ EOC
         $mech->get( '/other' );
         is $mech->status, 500, 'other gave a 500';
         $mech->content_contains('always crashes');
+
+        # check that a pathless internal_url works
+        $mech->get_ok( '/fooey' );
+        $mech->content_contains('root backend', 'pathless internal url sems to work');
     },
 );
 
