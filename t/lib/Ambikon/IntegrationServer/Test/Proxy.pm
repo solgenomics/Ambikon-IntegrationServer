@@ -42,9 +42,10 @@ sub test_proxy {
                     # set up some additional variables that can interpolate in
                     my $port  = $servers[0]->port;
                     my $port1 = $servers[0]->port;
-                    my ( $port2, $port3 );
+                    my ( $port2, $port3, $port4 );
                     $port2 = $servers[1]->port if $servers[1];
                     $port3 = $servers[2]->port if $servers[2];
+                    $port4 = $servers[3]->port if $servers[3];
 
                     my $interpolated_text = eval qq|"$args{conf}"|;
                     die $@ if $@;
