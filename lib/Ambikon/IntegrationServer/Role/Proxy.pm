@@ -21,7 +21,7 @@ sub build_internal_req_body {
     if( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
-        (my $body_string = "$u") =~ s/^\?//;
+        my $body_string = $u->query;
         $internal_headers->content_length( length $body_string );
         return $body_string;
     }
