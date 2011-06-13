@@ -35,13 +35,26 @@ sub build_internal_req_body {
         # upload-formatting code below is similar to
         # Catalyst::Controller::WrapCGI
 
+        # for HTTP::Request::Common, need to expand multi-valued body
+        # params, e.g. ( foo => [1,2] ) into ( foo => 1, foo => 2 )
+        my $body_params = $c->req->body_params;
+        my @body_params = map {
+            my $key = $_;
+            my $val = $body_params->{$_};
+            if( ref $val && ref $val eq 'ARRAY' ) {
+                map { $key => $_ } @$val
+            } else {
+                $key => $val
+            }
+        } keys %$body_params;
+
         local $HTTP::Request::Common::DYNAMIC_FILE_UPLOAD = 1;
         my $uploads = $c->req->uploads;
         my $post = HTTP::Request::Common::POST(
             'http://localhost/',
             'Content_Type' => 'form-data',
             Content => [
-                %{ $c->req->body_params || {} },
+                @body_params,
                 map {
                     my $u = $uploads->{$_};
                     $_ => [
