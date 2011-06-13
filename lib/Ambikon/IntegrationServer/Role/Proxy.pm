@@ -18,7 +18,12 @@ sub build_internal_req_body {
     my $type = $internal_headers->header('content-type')
         or return;
 
-    if( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
+    if( my $body = $c->req->body ) {
+        # just slurp the whole body if present
+        local $/;
+        return scalar <$body>;
+    }
+    elsif( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
         my $body_string = $u->query;
