@@ -1,9 +1,9 @@
 package #hide from PAUSE
     Ambikon::IntegrationServer::Test::WWWMechanize;
-use strict;
-use warnings;
+use Moose;
 
-use parent 'Test::WWW::Mechanize::Catalyst';
+extends 'Test::WWW::Mechanize::Catalyst';
 
+has '+catalyst_app', ( default => 'Ambikon::IntegrationServer' );
 
 1;

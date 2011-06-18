@@ -6,10 +6,13 @@ use JSON::Any; my $j = JSON::Any->new;
 
 BEGIN { $ENV{CATALYST_CONFIG_LOCAL_SUFFIX} = 'testing' }
 
-use Catalyst::Test 'Ambikon::IntegrationServer';
+use lib 't/lib';
+use aliased 'Ambikon::IntegrationServer::Test::WWWMechanize';
 
-my $subsites_r = request('/ambikon/subsite/list');
-my $subsites_json = $subsites_r->content;
+my $mech = WWWMechanize->new;
+$mech->get_ok('/ambikon/subsite/list');
+
+my $subsites_json = $mech->content;
 my $subsites = $j->from_json( $subsites_json );
 #diag explain $subsites;
 is( $subsites->{gbrowse}->{name}, 'GBrowse Development' );
