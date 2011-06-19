@@ -26,7 +26,7 @@ __PACKAGE__->config(
     disable_component_resolution_regex_fallback => 1,
 );
 
-# our subsites, hashed by the subsite name
+# lazy accessor for our subsite objects, hashed by the subsite name
 {
     my $subsites;
     sub subsites {
