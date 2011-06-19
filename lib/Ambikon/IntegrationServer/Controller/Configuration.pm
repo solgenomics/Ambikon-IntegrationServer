@@ -27,7 +27,7 @@ sub all_subsites : ActionClass('REST') Path( '/ambikon/subsite/list' ) {}
 
 sub all_subsites_GET {
     my ( $self, $c ) = @_;
-    $c->stash->{rest} = $c->subsites;
+    $self->status_ok( $c, entity => $c->subsites );
 }
 
 =head1 PRIVATE ACTIONS
@@ -44,6 +44,7 @@ sub auto : Private {
     unless( $c->forward('/auth/subsite/check') ) {
         $c->res->code( 403 );
         $c->stash->{rest} = { error => 'forbidden' };
+        $c->detach;
     }
 }
 
