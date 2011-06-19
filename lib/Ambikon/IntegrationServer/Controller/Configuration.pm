@@ -30,4 +30,23 @@ sub all_subsites_GET {
     $c->stash->{rest} = $c->subsites;
 }
 
+=head1 PRIVATE ACTIONS
+
+=head2 auto
+
+Called before all requests to this controller.  Currently checks that
+the request actually comes from a subsite.
+
+=cut
+
+sub auto : Private {
+    my ( $self, $c ) = @_;
+    unless( $c->forward('/auth/subsite/check') ) {
+        $c->res->code( 403 );
+        $c->stash->{rest} = { error => 'forbidden' };
+    }
+}
+
+
+
 1;
