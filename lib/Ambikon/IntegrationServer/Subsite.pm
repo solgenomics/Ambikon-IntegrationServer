@@ -149,5 +149,16 @@ sub can_stream {
     return 0;
 }
 
+around 'TO_JSON' => sub {
+    my $orig = shift;
+    my $self = shift;
+    my $hr = $self->$orig( @_ );
+    return {
+        %$hr,
+        modification => $self->modify_conf,
+    };
+};
+
 __PACKAGE__->meta->make_immutable;
+
 1;

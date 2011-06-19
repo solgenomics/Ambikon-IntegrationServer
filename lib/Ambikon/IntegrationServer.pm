@@ -26,7 +26,7 @@ __PACKAGE__->config(
     disable_component_resolution_regex_fallback => 1,
 );
 
-# our subsites, hashed by the subsite name
+# lazy accessor for our subsite objects, hashed by the subsite name
 {
     my $subsites;
     sub subsites {
@@ -60,7 +60,9 @@ Ambikon::IntegrationServer - the Ambikon integration server
 
 The Ambikon integration server is a fast frontend web application for
 integrating other web applications.  Existing web applications can run
-unmodified under Ambikon.
+unmodified under Ambikon.  Web applications that are Ambikon-aware can
+use it as a central point of exchange for communicating with other web
+applications running as part of the same web site.
 
 =cut
 

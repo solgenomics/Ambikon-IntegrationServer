@@ -13,7 +13,7 @@ has 'arg_names' => (
 
 sub can_stream { 0 }
 
-sub modify_response {
+before 'modify_response' => sub {
     my ( $self, $c ) = @_;
 
     $c->stash(
@@ -24,7 +24,7 @@ sub modify_response {
     $c->res->body( $self->render( $c->res->body ) );
 
     return 1;
-}
+};
 
 sub render {
     my ( $self, $body ) = @_;

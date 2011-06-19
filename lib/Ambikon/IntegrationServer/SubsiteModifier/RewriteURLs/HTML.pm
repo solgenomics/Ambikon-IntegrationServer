@@ -6,7 +6,7 @@ with 'Ambikon::IntegrationServer::Role::URLRewriter';
 
 sub can_stream { 0 }
 
-sub modify_response {
+before 'modify_response' => sub {
     my ( $self, $c ) = @_;
 
     my $body = $c->res->body;
@@ -21,7 +21,8 @@ sub modify_response {
        ;
 
     $c->res->body( $body );
-}
+};
+
 sub _rewrite_tag_attr {
     my ( $self, $c, $bref, $tag, $attrname ) = @_;
     $$bref =~ s/(< \s* $tag \s+ [^>]* $attrname \s* = \s* ["']?)([^"'\s>]+)/$1.$self->rewrite_url_internal_to_external($c,$2)/esgix;

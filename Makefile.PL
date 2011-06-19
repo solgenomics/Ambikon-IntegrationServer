@@ -26,9 +26,11 @@ requires      'Moose::Util::TypeConstraints' => 0;
 requires      'MooseX::Types::DateTimeX' => 0;
 requires      'MooseX::Types::URI' => 0;
 requires      'namespace::autoclean' => 0;
+requires      'Text::MicroTemplate' => 0;
 test_requires 'aliased' => 0;
 test_requires 'Catalyst::Test' => 0;
 test_requires 'File::Temp' => 0;
+test_requires 'HTML::Lint' => 0;
 test_requires 'IO::String' => 0;
 test_requires 'JSON::Any' => 0;
 test_requires 'parent' => 0;
@@ -36,6 +38,7 @@ test_requires 'Plack::Loader' => 0;
 test_requires 'Test::MockObject' => 0;
 test_requires 'Test::More' => '0.88';
 test_requires 'Test::TCP' => 0;
+test_requires 'Test::WWW::Mechanize::Catalyst' => 0;
 
 catalyst;
 

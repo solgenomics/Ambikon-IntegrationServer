@@ -18,10 +18,15 @@ sub build_internal_req_body {
     my $type = $internal_headers->header('content-type')
         or return;
 
-    if( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
+    if( my $body = $c->req->body ) {
+        # just slurp the whole body if present
+        local $/;
+        return scalar <$body>;
+    }
+    elsif( $type =~ m!^application/x-www-form-urlencoded\b!i ) {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
-        (my $body_string = "$u") =~ s/^\?//;
+        my $body_string = $u->query;
         $internal_headers->content_length( length $body_string );
         return $body_string;
     }
@@ -29,18 +34,32 @@ sub build_internal_req_body {
         # use a throwaway HTTP::Request obj to make the body (yuck).
         # upload-formatting code below is similar to
         # Catalyst::Controller::WrapCGI
+
+        # for HTTP::Request::Common, need to expand multi-valued body
+        # params, e.g. ( foo => [1,2] ) into ( foo => 1, foo => 2 )
+        my $body_params = $c->req->body_params;
+        my @body_params = map {
+            my $key = $_;
+            my $val = $body_params->{$_};
+            if( ref $val && ref $val eq 'ARRAY' ) {
+                map { $key => $_ } @$val
+            } else {
+                $key => $val
+            }
+        } keys %$body_params;
+
+        local $HTTP::Request::Common::DYNAMIC_FILE_UPLOAD = 1;
         my $uploads = $c->req->uploads;
         my $post = HTTP::Request::Common::POST(
             'http://localhost/',
             'Content_Type' => 'form-data',
             Content => [
-                %{ $c->req->body_params || {} },
+                @body_params,
                 map {
                     my $u = $uploads->{$_};
                     $_ => [
-                        undef,
+                        $u->tempname,
                         $u->filename,
-                        Content => $u->slurp,
                         map {
                             my $header = $_;
                             map { $header => $_ } $u->headers->header($header)
@@ -68,6 +87,7 @@ sub build_internal_req_url {
     my ( $self, $c, $subsite, $url ) = @_;
 
     my $external_path = $subsite->external_path;
+    $external_path = '' if ! defined $external_path || $external_path eq '/';
     my $external_pq   = $url->path_query;
 
     my $internal_url_base  = $subsite->internal_url;
@@ -88,17 +108,24 @@ sub build_internal_req_headers {
     my ( $self, $c, $subsite, $headers ) = @_;
 
     $headers = $headers->clone;
-
     my @header_names = $headers->header_field_names;
     $headers->remove_header(
         'Content-Length',
+	'Accept-Encoding',
         'If-Modified-Since',
-        ( grep /^X-Ambikon/, @header_names ),
+        ( grep /^X-Ambikon/i, @header_names ),
       );
 
     # add an X-Forwarded-For
     $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
-    $headers->push_header( 'Via', $self->_via_str($c) );
+
+    my $via = $self->_via_str( $c );
+    if( my $existing_via = $headers->header('Via') ) {
+        index( $existing_via, $via ) == -1
+            or die "Cycle of Ambikon self-requests detected for URL ".$c->req->uri.".  Please check the integration server configuration for incorrect internal URLs.\n";
+    }
+    $headers->push_header( 'Via', $via );
+
     $headers->header( 'X-Ambikon', $c->version);
 
     return $headers;
@@ -137,11 +164,12 @@ sub build_external_res_headers {
                   Connection
                   TE
                   Trailer
+                  Vary
               ),
             ( grep /^Client-/i, $h->header_field_names ),
             );
 
-    $h->push_header( 'Via', $self->_via_str($c));
+    $h->push_header( 'Via', $self->_via_str($c ) );
     $h->header( 'X-Ambikon', $c->version);
 
     return $h;
