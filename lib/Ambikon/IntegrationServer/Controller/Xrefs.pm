@@ -36,13 +36,17 @@ sub search_xrefs_GET {
         my $subsite = $_;
         map $self->_request_subsite_xrefs( $c, $subsite, $cv, $_ ), @$queries;
     } values %{$c->subsites};
-    $cv->recv while grep !$_->{is_finished}, @responses;
+    while( grep !$_->{is_finished}, @responses ) {
+        # wait for all the sub-requests to finish
+        $cv->recv;
+    }
 
     # aggregate the results and return them
     my %aggregated =
         map  {
             my $response = $_;
-            $response->{result} = $json->decode( $response->{result} );
+            $response->{result} = eval { $json->decode( $response->{result} ) } || $response->{result};
+            delete $response->{is_finished};
             $response->{subsite}->name => $response
         }
         grep $_->{status} == 200,

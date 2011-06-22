@@ -14,29 +14,33 @@ test_proxy(
   internal_url   http://$host:$port/monkeys
   external_path  /foo
 </subsite>
+<subsite baz>
+ internal_url   http://$host:$port2/
+ external_path  /fog
+</subsite>
 
     backends => [
         sub {
             my $env = shift;
-
-            my $response = qq|{ "twee": "zee", "query": "$env->{QUERY_STRING}" }|;
-
-            return [
-                200,
-                [ 'Content-type' => 'text/html',
-                  'Content-length' => length($response),
-                  'X-bar'  => 'fogbat',
-                  'X-zee'  => 'zaz',
-                ],
-                IO::String->new( \$response ),
-              ];
+            [ 200,
+              [ 'Content-type' => 'text/html',
+                'X-bar'  => 'fogbat',
+                'X-zee'  => 'zaz',
+              ],
+              [ qq|{ "twee": "zee", "query": "$env->{QUERY_STRING}" }| ],
+            ];
         },
+
+        sub { [ 200, [], ['baz baby'] ] },
       ],
 
     client => sub {
         my $mech = shift;
+        my $start_time = time;
         $mech->get_ok('/ambikon/xrefs/search?q=cromulence');
-        $mech->content_contains( '"zee"', 'got xref response from subsite' );
+        diag $mech->content;
+        $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
+        $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );
     },
   );
 
