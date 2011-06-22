@@ -37,7 +37,7 @@ test_proxy(
     client => sub {
         my $mech = shift;
         my $start_time = time;
-        $mech->get_ok('/ambikon/xrefs/search?q=cromulence');
+        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys');
         diag $mech->content;
         $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
         $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );

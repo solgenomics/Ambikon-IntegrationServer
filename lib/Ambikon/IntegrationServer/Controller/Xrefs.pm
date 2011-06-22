@@ -32,28 +32,31 @@ sub search_xrefs_GET {
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
     my $cv = AnyEvent->condvar;
-    my @responses = map {
-        my $subsite = $_;
-        map $self->_request_subsite_xrefs( $c, $subsite, $cv, $_ ), @$queries;
-    } values %{$c->subsites};
-    while( grep !$_->{is_finished}, @responses ) {
+    my %responses = map {
+        my $query = $_;
+        $query => [ map $self->_request_subsite_xrefs( $c, $_, $cv, $query ), values %{$c->subsites} ]
+    } @$queries;
+
+    while( grep !$_->{is_finished}, map @$_, values %responses ) {
         # wait for all the sub-requests to finish
         $cv->recv;
     }
 
     # aggregate the results and return them
-    my %aggregated =
-        map  {
-            my $response = $_;
-            $response->{result} = eval { $json->decode( $response->{result} ) } || $response->{result};
-            delete $response->{is_finished};
-            $response->{subsite}->name => $response
-        }
-        grep $_->{status} == 200,
-        @responses;
-
+    for my $query_responses ( values %responses ) {
+        $query_responses = {
+            map {
+                my $response = $_;
+                $response->{result} = eval { $json->decode( $response->{result} ) } || $response->{result};
+                delete $response->{is_finished};
+                $response->{subsite}->name => $response
+            }
+            grep $_->{status} == 200,
+            @$query_responses
+        };
+    }
     $self->status_ok( $c,
-        entity => \%aggregated,
+        entity => \%responses,
      );
 }
 
