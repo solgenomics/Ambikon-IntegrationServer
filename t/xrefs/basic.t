@@ -22,6 +22,7 @@ test_proxy(
     backends => [
         sub {
             my $env = shift;
+            sleep rand(3);
             [ 200,
               [ 'Content-type' => 'text/html',
                 'X-bar'  => 'fogbat',

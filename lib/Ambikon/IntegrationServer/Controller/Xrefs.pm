@@ -37,10 +37,8 @@ sub search_xrefs_GET {
         $query => [ map $self->_request_subsite_xrefs( $c, $_, $cv, $query ), values %{$c->subsites} ]
     } @$queries;
 
-    while( grep !$_->{is_finished}, map @$_, values %responses ) {
-        # wait for all the sub-requests to finish
-        $cv->recv;
-    }
+    # wait for all the sub-requests to finish
+    $cv->recv;
 
     # aggregate the results and return them
     for my $query_responses ( values %responses ) {
@@ -81,6 +79,7 @@ sub _request_subsite_xrefs {
     my $url = $subsite->internal_url->clone;
     $url->path_query( $url->path.'/ambikon/xrefs/search?q='.uri_escape( $query ) );
 
+    $cv->begin;
     AnyEvent::HTTP::http_request(
         'GET'      => $url,
         headers    => $headers,
@@ -98,7 +97,7 @@ sub _request_subsite_xrefs {
         on_body    => sub {
             $response->{result} .= $_[0];
         },
-        sub { $response->{is_finished} = 1; $cv->send },
+        sub { $response->{is_finished} = 1; $cv->end },
     );
 
     return $response;
