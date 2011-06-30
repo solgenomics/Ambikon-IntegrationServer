@@ -49,7 +49,7 @@ sub search_xrefs_GET {
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
-            grep $_->{status} == 200,
+            grep $_->{http_status} == 200,
             @$query_responses
         };
     }
@@ -71,7 +71,7 @@ sub _request_subsite_xrefs {
     my $response = {
         subsite => $subsite,
         query   => $query,
-        status  => undef,
+        http_status  => undef,
         result  => '',
         is_finished => 0,
     };
@@ -90,7 +90,7 @@ sub _request_subsite_xrefs {
         on_header  => sub {
             my $headers = shift;
             if ( $headers->{Status} !~ /^59\d+/ ) {
-                $response->{status} = $headers->{Status};
+                $response->{http_status} = $headers->{Status};
             }
             return 1;
         },
