@@ -1,3 +1,9 @@
+=head1 NAME
+
+Ambikon::IntegrationServer::Controller::Xrefs - controller for Ambikon Xrefs API
+
+=cut
+
 package Ambikon::IntegrationServer::Controller::Xrefs;
 use Moose;
 use namespace::autoclean;
@@ -14,6 +20,23 @@ __PACKAGE__->config(
     default => 'application/json',
     );
 
+
+=head1 PUBLIC ACTIONS
+
+=head2 search_xrefs
+
+Public path: /ambikon/xrefs/search
+
+Valid Method(s): GET
+
+L<Catalyst::Controller::REST> action to request Xrefs from subsites.
+Done in parallel with nonblocking HTTP requests.
+
+=head3 Query Params
+
+C<q>: query string to pass to subsites
+
+=cut
 
 sub search_xrefs : Path('/ambikon/xrefs/search') ActionClass('REST') {}
 
