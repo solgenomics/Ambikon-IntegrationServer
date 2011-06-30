@@ -69,6 +69,7 @@ sub search_xrefs_GET {
             map {
                 my $response = $_;
                 $response->{result} = eval { $json->decode( $response->{result} ) } || $response->{result};
+                $response->{result} = [ $response->{result} ] unless ref $response->{result} eq 'ARRAY';
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
