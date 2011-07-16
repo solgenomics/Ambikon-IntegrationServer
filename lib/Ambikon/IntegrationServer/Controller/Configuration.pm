@@ -43,7 +43,7 @@ sub auto : Private {
     my ( $self, $c ) = @_;
     unless( $c->forward('/auth/subsite/check') ) {
         $c->res->code( 403 );
-        $c->stash->{rest} = { error => 'forbidden' };
+        $c->stash->{rest} = { error => 'forbidden, must provide the correct X-Ambikon-Subsite-Key header, or subsite_key request parameter' };
         $c->detach;
     }
 }
