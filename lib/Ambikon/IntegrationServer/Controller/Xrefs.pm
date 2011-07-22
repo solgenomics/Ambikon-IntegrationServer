@@ -43,6 +43,7 @@ sub search_xrefs : Path('/ambikon/xrefs/search') ActionClass('REST') {}
 sub search_xrefs_GET {
     my ( $self, $c ) = @_;
 
+    # get our queries from whatever params we got
     my $queries = $c->req->params->{'q'};
     unless( $queries ) {
         $self->status_bad_request( $c,
@@ -68,8 +69,16 @@ sub search_xrefs_GET {
         $query_responses = {
             map {
                 my $response = $_;
-                $response->{result} = eval { $json->decode( $response->{result} ) } || $response->{result};
-                $response->{result} = [ $response->{result} ] unless ref $response->{result} eq 'ARRAY';
+                # try to decode and validate the result
+                my $original_result = $response->{result};
+                eval { $response->{result} = $json->decode( $response->{result} ) };
+                if( $@ || not $self->validate_xref_response($response->{result}) ) {
+                    # the returned xref was not valid.  make it an error
+                    $response->{http_status}   = 500;
+                    $response->{error_message} = 'the xref data returned from the subsite was not valid';
+                    $response->{malformed_result} = $original_result;
+                    delete $response->{result};
+                }
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
@@ -80,6 +89,17 @@ sub search_xrefs_GET {
     $self->status_ok( $c,
         entity => \%responses,
      );
+}
+
+# return true if the response data is valid, false if not
+sub validate_xref_response {
+    my ( $self, $response ) = @_;
+
+    return 0 unless ref $response eq 'ARRAY';
+    for my $xref ( @$response ) {
+        # validate the xref
+    }
+    return 1;
 }
 
 sub _request_subsite_xrefs {
@@ -107,7 +127,7 @@ sub _request_subsite_xrefs {
     AnyEvent::HTTP::http_request(
         'GET'      => $url,
         headers    => $headers,
-        timeout    => 30,
+        timeout    => 20,
         #body       => $body,
         persistent => 1,
         proxy      => undef, # $ENV{http_proxy} causing test failures

@@ -3,7 +3,8 @@ use warnings;
 
 use Test::More;
 use IO::String;
-use Data::Dump;
+
+use JSON::Any; my $json = JSON::Any->new;
 
 use lib 't/lib';
 use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
@@ -28,7 +29,7 @@ test_proxy(
                 'X-bar'  => 'fogbat',
                 'X-zee'  => 'zaz',
               ],
-              [ qq|{ "twee": "zee", "query": "$env->{QUERY_STRING}" }| ],
+              [ qq|[{ "twee": "zee", "query": "$env->{QUERY_STRING}" }]| ],
             ];
         },
 
@@ -39,9 +40,17 @@ test_proxy(
         my $mech = shift;
         my $start_time = time;
         $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys');
-        diag $mech->content;
         $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
         $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );
+
+        my $data = $json->decode( $mech->content );
+
+        is ref $data, 'HASH', 'aggregated response decoded ok';
+        is $data->{cromulence}{baz}{http_status}, 500,
+           'got an error from the baz subsite, because of its malformed response';
+        is $data->{cromulence}{foo_bar}{http_status}, 200,
+           'foo_bar subsite response is OK';
+
     },
   );
 
