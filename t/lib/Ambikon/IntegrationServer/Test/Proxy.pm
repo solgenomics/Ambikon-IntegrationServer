@@ -65,7 +65,7 @@ sub test_proxy {
             }
 
             close STDOUT;
-            close STDERR;
+            close STDERR unless $ENV{CATALYST_DEBUG};
 
             require Ambikon::IntegrationServer;
             Ambikon::IntegrationServer->setup_engine('HTTP');
