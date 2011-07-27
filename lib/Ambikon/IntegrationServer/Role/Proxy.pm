@@ -127,6 +127,7 @@ sub build_internal_req_headers {
     $headers->push_header( 'Via', $via );
 
     $headers->header( 'X-Ambikon-Version', $c->version );
+    $headers->header( 'X-Ambikon-Server-Url', 'http://'.$self->ambikon_host_and_port($c) );
 
     return $headers;
 }
@@ -178,8 +179,19 @@ sub build_external_res_headers {
 sub _via_str {
     my ( $self, $c ) = @_;
 
+    return '1.1 '.$self->ambikon_host_and_port($c).' (Ambikon/'.$c->version.')';
+}
+
+sub ambikon_host_and_port {
+    my ( $self, $c ) = @_;
+
     my $u = $c->req->uri;
-    return '1.1 '.$u->host.( $u->_port ? ':'.$u->_port : '' ).' (Ambikon/'.$c->version.')';
+    my $host = $u->host;
+    my $port = $u->_port;
+
+    return wantarray
+        ? ( $host, $port )
+        : $host.( $port ? ':'.$port : '' );
 }
 
 
