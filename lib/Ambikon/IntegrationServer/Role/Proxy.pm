@@ -120,13 +120,13 @@ sub build_internal_req_headers {
     $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
 
     my $via = $self->_via_str( $c );
-    if( my $existing_via = $headers->header('Via') ) {
+    if( my $existing_via = $headers->header( 'Via' ) ) {
         index( $existing_via, $via ) == -1
             or die "Cycle of Ambikon self-requests detected for URL ".$c->req->uri.".  Please check the integration server configuration for incorrect internal URLs.\n";
     }
     $headers->push_header( 'Via', $via );
 
-    $headers->header( 'X-Ambikon', $c->version);
+    $headers->header( 'X-Ambikon-Version', $c->version );
 
     return $headers;
 }
@@ -170,7 +170,7 @@ sub build_external_res_headers {
             );
 
     $h->push_header( 'Via', $self->_via_str($c ) );
-    $h->header( 'X-Ambikon', $c->version);
+    $h->header( 'X-Ambikon-Version', $c->version);
 
     return $h;
 }
