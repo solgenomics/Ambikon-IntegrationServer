@@ -46,7 +46,7 @@ test_proxy(
         my $data = $json->decode( $mech->content );
 
         is ref $data, 'HASH', 'aggregated response decoded ok';
-        is $data->{cromulence}{baz}{http_status}, 500,
+        ok $data->{cromulence}{baz}{error_message},
            'got an error from the baz subsite, because of its malformed response';
         is $data->{cromulence}{foo_bar}{http_status}, 200,
            'foo_bar subsite response is OK';

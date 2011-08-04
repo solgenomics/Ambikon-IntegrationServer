@@ -70,19 +70,18 @@ sub search_xrefs_GET {
             map {
                 my $response = $_;
                 # try to decode and validate the result
-                my $original_result = $response->{result};
                 eval { $response->{result} = $json->decode( $response->{result} ) };
-                if( $@ || not $self->validate_xref_response($response->{result}) ) {
-                    # the returned xref was not valid.  make it an error
-                    $response->{http_status}   = 500;
-                    $response->{error_message} = 'the xref data returned from the subsite was not valid';
-                    $response->{malformed_result} = $original_result;
-                    delete $response->{result};
+                if( $@ ) {
+                    $self->_set_error_response( $response, 'xref data not valid JSON' );
+                } elsif( not $response->{http_status} == 200 ) {
+                    $self->_set_error_response( $response, "subsite returned HTTP status $response->{http_status}" );
+                } elsif( my @errors = $self->validate_xref_response($response->{result}) ) {
+                    $self->_set_error_response( $response, join( ', ', @errors) );
                 }
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
-            grep $_->{http_status} == 200,
+            grep $_->{http_status} != 404,
             @$query_responses
         };
     }
@@ -91,15 +90,21 @@ sub search_xrefs_GET {
      );
 }
 
+sub _set_error_response {
+    my ( $self, $response, $message ) = @_;
+    $response->{error_message} = $message;
+    $response->{error_content} = delete $response->{result};
+}
+
 # return true if the response data is valid, false if not
 sub validate_xref_response {
     my ( $self, $response ) = @_;
 
-    return 0 unless ref $response eq 'ARRAY';
+    return ('response is not an array') unless ref $response eq 'ARRAY';
     for my $xref ( @$response ) {
-        # validate the xref
+        # TODO: validate the xref
     }
-    return 1;
+    return;
 }
 
 sub _request_subsite_xrefs {
