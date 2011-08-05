@@ -80,7 +80,7 @@ sub test_constellation {
         );
 
     # call the client code with the configured mech
-    $args{client}->( $mech );
+    $args{client}->( $mech, $ambikon_server );
 }
 
 # takes an env hashref and filters out psgi vars (many of which can't
