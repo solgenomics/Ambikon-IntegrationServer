@@ -81,7 +81,7 @@ sub search_xrefs_GET {
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
-            grep $_->{http_status} != 404,
+            grep defined $_->{http_status} && $_->{http_status} != 404,
             @$query_responses
         };
     }

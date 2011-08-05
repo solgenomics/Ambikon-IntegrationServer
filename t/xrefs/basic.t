@@ -19,6 +19,14 @@ test_proxy(
  internal_url   http://$host:$port2/
  external_path  /fog
 </subsite>
+<subsite nosupport>
+ internal_url   http://$host:$port3/
+ external_path  /nosupport
+</subsite>
+<subsite nonexistent>
+ internal_url   http://$host:1/
+ external_path  /nonexistent
+</subsite>
 
     backends => [
         sub {
@@ -34,6 +42,8 @@ test_proxy(
         },
 
         sub { [ 200, [], ['baz baby'] ] },
+
+        sub { [ 404, [], ['Not found']] },
       ],
 
     client => sub {
@@ -50,6 +60,12 @@ test_proxy(
            'got an error from the baz subsite, because of its malformed response';
         is $data->{cromulence}{foo_bar}{http_status}, 200,
            'foo_bar subsite response is OK';
+
+        ok !exists $data->{cromulence}{nosupport},
+            '404 response from nosupport subsite, so not included in results';
+        ok !exists $data->{cromulence}{nonexistent},
+            'nonexistent site is down, so not included in xrefs';
+
 
     },
   );
