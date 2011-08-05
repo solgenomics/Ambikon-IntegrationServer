@@ -6,11 +6,11 @@ use Test::More;
 use JSON::Any; my $json = JSON::Any->new;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy  filter_env /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation  filter_env /;
 
 
 # bigger test with 3 backends
-test_proxy(
+test_constellation(
     conf => <<'EOC',
 <subsite dum>
   name Tweedle Dum

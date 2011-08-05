@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation /;
 
 sub forcible_conf {
 
@@ -44,7 +44,7 @@ EOC
 }
 
 # test a basic conf with 1 backend
-test_proxy(
+test_constellation(
     conf => forcible_conf(),
     backends => [
         sub {

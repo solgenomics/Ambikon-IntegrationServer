@@ -7,9 +7,9 @@ use IO::String;
 use JSON::Any; my $json = JSON::Any->new;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation filter_env /;
 
-test_proxy(
+test_constellation(
     conf => <<'',
 <subsite foo_bar>
   internal_url   http://$host:$port/monkeys
