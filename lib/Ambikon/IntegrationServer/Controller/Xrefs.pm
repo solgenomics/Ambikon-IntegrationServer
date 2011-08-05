@@ -70,12 +70,12 @@ sub search_xrefs_GET {
             map {
                 my $response = $_;
                 # try to decode and validate the result
-                eval { $response->{result} = $json->decode( $response->{result} ) };
+                eval { $response->{xrefs} = $json->decode( $response->{xrefs} ) };
                 if( $@ ) {
                     $self->_set_error_response( $response, 'xref data not valid JSON' );
                 } elsif( not $response->{http_status} == 200 ) {
                     $self->_set_error_response( $response, "subsite returned HTTP status $response->{http_status}" );
-                } elsif( my @errors = $self->validate_xref_response($response->{result}) ) {
+                } elsif( my @errors = $self->validate_xref_response($response->{xrefs}) ) {
                     $self->_set_error_response( $response, join( ', ', @errors) );
                 }
                 delete $response->{is_finished};
@@ -93,7 +93,7 @@ sub search_xrefs_GET {
 sub _set_error_response {
     my ( $self, $response, $message ) = @_;
     $response->{error_message} = $message;
-    $response->{error_content} = delete $response->{result};
+    $response->{error_content} = delete $response->{xrefs};
 }
 
 # return true if the response data is valid, false if not
@@ -144,7 +144,7 @@ sub _request_subsite_xrefs {
             return 1;
         },
         on_body    => sub {
-            $response->{result} .= $_[0];
+            $response->{xrefs} .= $_[0];
         },
         sub { $response->{is_finished} = 1; $cv->end },
     );
