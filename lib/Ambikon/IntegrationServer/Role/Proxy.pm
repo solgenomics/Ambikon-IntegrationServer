@@ -127,7 +127,7 @@ sub build_internal_req_headers {
     $headers->push_header( 'Via', $via );
 
     $headers->header( 'X-Ambikon-Version', $c->version );
-    $headers->header( 'X-Ambikon-Server-Url', 'http://'.$self->ambikon_host_and_port($c) );
+    $headers->header( 'X-Ambikon-Server-Url', 'http://'.$self->ambikon_host_and_port($c).'/ambikon' );
 
     return $headers;
 }

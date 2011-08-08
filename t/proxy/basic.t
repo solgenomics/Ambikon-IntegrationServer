@@ -64,8 +64,8 @@ test_constellation(
                'got X-Forwarded-For header also';
           like $request_env->{HTTP_X_AMBIKON_VERSION}, qr/[\.\d]+/,
                'got an X-Ambikon-Version header';
-          like $request_env->{HTTP_X_AMBIKON_SERVER_URL}, qr!http://!,
-               'got an X-Ambikon-Server-Url header';
+          like $request_env->{HTTP_X_AMBIKON_SERVER_URL}, qr!http://[^:]+:\d+/ambikon!,
+               'got right X-Ambikon-Server-Url header';
         }
 
         { # redirect response
