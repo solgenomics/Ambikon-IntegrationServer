@@ -27,7 +27,9 @@ sub build_internal_req_body {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
         my $body_string = $u->query;
-        $internal_headers->content_length( length $body_string );
+        if( defined $body_string ) {
+            $internal_headers->content_length( length $body_string );
+        }
         return $body_string;
     }
     elsif( $type =~ m!^multipart/form-data\b!i ) {
