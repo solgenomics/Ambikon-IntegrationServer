@@ -14,6 +14,7 @@ test_constellation(
 <subsite foo_bar>
   internal_url   http://$host:$port/monkeys
   external_path  /foo
+  tags foobartag!
 </subsite>
 <subsite baz>
  internal_url   http://$host:$port2/
@@ -60,6 +61,10 @@ test_constellation(
            'got an error from the baz subsite, because of its malformed response';
         is $data->{cromulence}{foo_bar}{http_status}, 200,
            'foo_bar subsite response is OK';
+        is $data->{monkeys}{foo_bar}{http_status}, 200;
+        is $data->{cromulence}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{monkeys}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{monkeys}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
 
         ok !exists $data->{cromulence}{nosupport},
             '404 response from nosupport subsite, so not included in results';

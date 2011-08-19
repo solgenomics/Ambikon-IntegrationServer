@@ -17,7 +17,8 @@ with 'Ambikon::IntegrationServer::Role::Proxy';
 
 __PACKAGE__->config(
     #namespace => '/ambikon/xrefs'
-    default => 'application/json',
+    stash_key => 'rest',
+    default   => 'application/json',
     );
 
 
@@ -64,8 +65,10 @@ sub search_xrefs_GET {
     # wait for all the sub-requests to finish
     $cv->recv;
 
-    # aggregate the results and return them
     for my $query_responses ( values %responses ) {
+        # hash each query's subsite response by the subsite's name,
+        # filter out unsuccessful responses, and validate the
+        # responses
         $query_responses = {
             map {
                 my $response = $_;
@@ -81,14 +84,54 @@ sub search_xrefs_GET {
                 delete $response->{is_finished};
                 $response->{subsite}->name => $response
             }
+            # filter out unsuccessful responses
             grep defined $_->{http_status} && $_->{http_status} != 404,
             @$query_responses
         };
     }
+
     $self->status_ok( $c,
         entity => \%responses,
      );
+
+    $c->forward('postprocess_xrefs');
 }
+
+# apply any post-processing to xref responses
+sub postprocess_xrefs : Private {
+    my ( $self, $c ) = @_;
+
+    # add a default tag of the subsite description, name, or shortname
+    # any to xrefs that have no tags
+    $c->forward('add_default_xref_tags');
+}
+
+# add a default tag of the subsite description, name, or shortname
+# any to xrefs that have no tags
+sub add_default_xref_tags : Private {
+    my ( $self, $c ) = @_;
+
+    my $response = $c->stash->{rest};
+    for my $result_set ( values %$response ) {
+        for my $subsite_result ( values %$result_set ) {
+
+            my $subsite = $subsite_result->{subsite}
+                or next; # skip if no subsite for some reason
+
+            for my $xref ( @{$subsite_result->{xrefs}} ) {
+                unless( $xref->{tags} && scalar @{ $xref->{tags} } ) {
+                    warn "making a default tag for ".$subsite->name;
+                    @{$xref->{tags}} = scalar @{$subsite->tags} ? @{$subsite->tags}
+                                     :    $subsite->description
+                                       || $subsite->name
+                                       || $subsite->shortname;
+                }
+            }
+        }
+    }
+
+}
+
 
 sub _set_error_response {
     my ( $self, $response, $message ) = @_;
