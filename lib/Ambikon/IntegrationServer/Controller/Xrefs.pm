@@ -39,7 +39,8 @@ C<q>: query string to pass to subsites
 
 =cut
 
-sub search_xrefs : Path('/ambikon/xrefs/search') ActionClass('REST') {}
+
+sub search_xrefs : Path('/ambikon/xrefs/search') Args(0) ActionClass('REST') {}
 
 sub search_xrefs_GET {
     my ( $self, $c ) = @_;
