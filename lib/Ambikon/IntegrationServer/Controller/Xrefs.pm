@@ -160,6 +160,13 @@ sub _request_subsite_xrefs {
         $c->req->headers,
         );
     $headers->content_type('application/json');
+    $headers->header('Accept', [qw[
+                                     application/json
+                                     application/x-javascript
+                                     text/javascript
+                                     text/x-javascript
+                                     text/x-json
+                                 ]]);
 
     my $response = {
         subsite => $subsite,
