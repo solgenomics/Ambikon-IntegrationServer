@@ -121,6 +121,8 @@ sub build_internal_req_headers {
     # add an X-Forwarded-For
     $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
 
+    # add a Via header listing this server, and check for request
+    # cycles while doing so
     my $via = $self->_via_str( $c );
     if( my $existing_via = $headers->header( 'Via' ) ) {
         index( $existing_via, $via ) == -1

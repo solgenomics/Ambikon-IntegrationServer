@@ -67,7 +67,7 @@ sub search_xrefs_GET {
     $cv->recv;
 
     for my $query_responses ( values %responses ) {
-        # hash each query's subsite response by the subsite's name,
+        # hash each query's subsite responses by the subsite names,
         # filter out unsuccessful responses, and validate the
         # responses
         $query_responses = {
