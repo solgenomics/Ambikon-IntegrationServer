@@ -8,12 +8,13 @@ package Ambikon::IntegrationServer::Controller::Xrefs;
 use Moose;
 use namespace::autoclean;
 
-use AnyEvent::HTTP;
 use JSON::Any; my $json = JSON::Any->new;
 use URI::Escape;
 
 BEGIN { extends 'Catalyst::Controller::REST' }
-with 'Ambikon::IntegrationServer::Role::Proxy';
+
+with 'Ambikon::IntegrationServer::Role::Proxy',
+     'Ambikon::IntegrationServer::Role::ParallelHTTP';
 
 __PACKAGE__->config(
     #namespace => '/ambikon/xrefs'
@@ -57,24 +58,27 @@ sub search_xrefs_GET {
 
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
-    my $cv = AnyEvent->condvar;
-    my %responses = map {
+    my $responses = {};
+    my @jobs = map {
         my $query = $_;
-        $query => [ map $self->_request_subsite_xrefs( $c, $_, $cv, $query ), values %{$c->subsites} ]
+        sub {
+            my ( $subsite ) = @_;
+            my $response_slot = $responses->{$query}{$subsite->name} = {};
+            return $self->_make_subsite_xrefs_request( $c, $subsite, $query, $response_slot );
+        }
     } @$queries;
 
-    # wait for all the sub-requests to finish
-    $cv->recv;
+    $self->http_parallel_requests( $c, @jobs );
+    warn "Responses is now ".Data::Dump::dump( $responses );
 
-    for my $query_responses ( values %responses ) {
-        # hash each query's subsite responses by the subsite names,
-        # filter out unsuccessful responses, and validate the
-        # responses
-        $query_responses = {
-            map {
-                my $response = $_;
+    # filter out 404 and timeout responses, and validate rest of the responses
+    for my $query ( keys %$responses ) {
+        my $q_responses = $responses->{$query};
+        for my $subsite_name ( keys %$q_responses ) {
+            my $response = $q_responses->{$subsite_name};
+            if( defined $response->{http_status} && $response->{http_status} != 404 ) {
                 # try to decode and validate the result
-                eval { $response->{xrefs} = $json->decode( $response->{xrefs} ) };
+                eval { $response->{xrefs} = $json->decode( $response->{body} ) };
                 if( $@ ) {
                     $self->_set_error_response( $response, 'xref data not valid JSON' );
                 } elsif( not $response->{http_status} == 200 ) {
@@ -83,16 +87,14 @@ sub search_xrefs_GET {
                     $self->_set_error_response( $response, join( ', ', @errors) );
                 }
                 delete $response->{is_finished};
-                $response->{subsite}->name => $response
+            } else {
+                delete $responses->{$query}{$subsite_name};
             }
-            # filter out unsuccessful responses
-            grep defined $_->{http_status} && $_->{http_status} != 404,
-            @$query_responses
-        };
+        }
     }
 
     $self->status_ok( $c,
-        entity => \%responses,
+        entity => $responses,
      );
 
     $c->forward('postprocess_xrefs');
@@ -151,8 +153,8 @@ sub validate_xref_response {
     return;
 }
 
-sub _request_subsite_xrefs {
-    my ( $self, $c, $subsite, $cv, $query ) = @_;
+sub _make_subsite_xrefs_request {
+    my ( $self, $c, $subsite, $query, $response_slot ) = @_;
 
     my $headers = $self->build_internal_req_headers(
         $c,
@@ -168,40 +170,26 @@ sub _request_subsite_xrefs {
                                      text/x-json
                                  ]]);
 
-    my $response = {
-        subsite => $subsite,
-        query   => $query,
-        http_status  => undef,
-        result  => '',
-        is_finished => 0,
-    };
 
     my $url = $subsite->internal_url->clone;
     $url->path_query( $url->path.'/ambikon/xrefs/search?q='.uri_escape( $query ) );
 
-    $cv->begin;
-    AnyEvent::HTTP::http_request(
-        'GET'      => $url,
+    @{$response_slot}{qw{ subsite query http_status body is_finished }} = (
+        $subsite, $query, undef, '', 0 );
+
+    return (
+        'GET'      => "$url",
         headers    => $headers,
-        timeout    => 20,
-        #body       => $body,
-        persistent => 1,
-        proxy      => undef, # $ENV{http_proxy} causing test failures
         on_header  => sub {
             my $headers = shift;
-            if ( $headers->{Status} !~ /^59\d+/ ) {
-                $response->{http_status} = $headers->{Status};
-            }
+            warn "got some headers";
+            $response_slot->{http_status} = $headers->{Status};
+            $response_slot->{headers} = $headers;
             return 1;
         },
-        on_body    => sub {
-            $response->{xrefs} .= $_[0];
-        },
-        sub { $response->{is_finished} = 1; $cv->end },
+        on_body    => sub { warn "got some body"; $response_slot->{body} .= $_[0] },
+        sub { my ( $data, $headers ) = @_; $response_slot->{is_finished} = 1 },
     );
-
-    return $response;
 }
-
 
 1;
