@@ -61,7 +61,6 @@ sub search_xrefs_GET {
     } @$queries;
 
     $self->http_parallel_requests( $c, @jobs );
-    warn "Responses is now ".Data::Dump::dump( $responses );
 
     # filter out 404 and timeout responses, and validate rest of the responses
     for my $query ( keys %$responses ) {
@@ -134,7 +133,7 @@ sub add_default_xref_tags : Private {
 
             for my $xref ( @{$subsite_result->{xrefs}} ) {
                 unless( $xref->{tags} && scalar @{ $xref->{tags} } ) {
-                    warn "making a default tag for ".$subsite->name;
+                    #warn "making a default tag for ".$subsite->name;
                     @{$xref->{tags}} = scalar @{$subsite->tags} ? @{$subsite->tags}
                                      :    $subsite->description
                                        || $subsite->name
@@ -193,12 +192,11 @@ sub _make_subsite_xrefs_request {
         headers    => $headers,
         on_header  => sub {
             my $headers = shift;
-            warn "got some headers";
             $response_slot->{http_status} = $headers->{Status};
             $response_slot->{headers} = $headers;
             return 1;
         },
-        on_body    => sub { warn "got some body"; $response_slot->{body} .= $_[0] },
+        on_body    => sub { $response_slot->{body} .= $_[0] },
         sub { my ( $data, $headers ) = @_; $response_slot->{is_finished} = 1 },
     );
 }
