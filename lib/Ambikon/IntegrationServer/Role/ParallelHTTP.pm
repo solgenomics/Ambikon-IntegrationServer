@@ -39,7 +39,7 @@ sub http_parallel_requests {
                 @ae_http_args,
               );
 
-            warn "dispatching with: ".Data::Dump::dump( \%ae_args, $end_sub );
+            #warn "dispatching with: ".Data::Dump::dump( \%ae_args, $end_sub );
 
             $cv->begin;
             AnyEvent::HTTP::http_request(
