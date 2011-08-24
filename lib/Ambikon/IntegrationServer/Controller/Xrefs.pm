@@ -145,15 +145,11 @@ sub add_default_xref_tags : Private {
 
 }
 
-
 sub _make_subsite_xrefs_request {
     my ( $self, $c, $subsite, $query, $response_slot ) = @_;
 
-    my $headers = $self->build_internal_req_headers(
-        $c,
-        $subsite,
-        $c->req->headers,
-        );
+    # set up headers
+    my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
     $headers->content_type('application/json');
     $headers->header('Accept', [qw[
                                      application/json
@@ -163,12 +159,20 @@ sub _make_subsite_xrefs_request {
                                      text/x-json
                                  ]]);
 
-
+    # set up url
     my $url = $subsite->internal_url->clone;
     $url->path_query( $url->path.'/ambikon/xrefs/search?q='.uri_escape( $query ) );
 
+    # initialize the response slot
     @{$response_slot}{qw{ subsite query http_status body is_finished }} = (
         $subsite, $query, undef, '', 0 );
+
+    # assemble and return the completed request args
+    return $self->_make_request_args( $url, $headers, $response_slot );
+}
+
+sub _make_request_args {
+    my ( $self, $url, $headers, $response_slot ) = @_;
 
     return (
         'GET'      => "$url",
