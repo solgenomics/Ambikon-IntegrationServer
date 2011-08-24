@@ -46,15 +46,7 @@ sub search_xrefs : Path('/ambikon/xrefs/search') Args(0) ActionClass('REST') {}
 sub search_xrefs_GET {
     my ( $self, $c ) = @_;
 
-    # get our queries from whatever params we got
-    my $queries = $c->req->params->{'q'};
-    unless( $queries ) {
-        $self->status_bad_request( $c,
-            message => 'must provide query param "q"'
-          );
-        return;
-    }
-    $queries = [$queries] unless ref $queries;
+    my $queries = $c->forward('ensure_queries');
 
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
@@ -99,6 +91,25 @@ sub search_xrefs_GET {
 
     $c->forward('postprocess_xrefs');
 }
+
+
+########### helper methods and actions ##############
+
+sub ensure_queries :Private {
+    my ( $self, $c ) = @_;
+    # get our queries from whatever params we got
+    my $queries = $c->req->params->{'q'};
+    unless( $queries ) {
+        $self->status_bad_request( $c,
+            message => 'must provide query param "q"'
+          );
+        return;
+    }
+    $queries = [$queries] unless ref $queries;
+
+    return  $c->stash->{queries} = $queries;
+}
+
 
 # apply any post-processing to xref responses
 sub postprocess_xrefs : Private {
