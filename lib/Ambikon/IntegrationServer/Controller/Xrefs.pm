@@ -146,23 +146,6 @@ sub add_default_xref_tags : Private {
 }
 
 
-sub _set_error_response {
-    my ( $self, $response, $message ) = @_;
-    $response->{error_message} = $message;
-    $response->{error_content} = delete $response->{xrefs};
-}
-
-# return true if the response data is valid, false if not
-sub validate_xref_response {
-    my ( $self, $response ) = @_;
-
-    return ('response is not an array') unless ref $response eq 'ARRAY';
-    for my $xref ( @$response ) {
-        # TODO: validate the xref
-    }
-    return;
-}
-
 sub _make_subsite_xrefs_request {
     my ( $self, $c, $subsite, $query, $response_slot ) = @_;
 
@@ -199,6 +182,23 @@ sub _make_subsite_xrefs_request {
         on_body    => sub { $response_slot->{body} .= $_[0] },
         sub { my ( $data, $headers ) = @_; $response_slot->{is_finished} = 1 },
     );
+}
+
+sub _set_error_response {
+    my ( $self, $response, $message ) = @_;
+    $response->{error_message} = $message;
+    $response->{error_content} = delete $response->{xrefs};
+}
+
+# return true if the response data is valid, false if not
+sub validate_xref_response {
+    my ( $self, $response ) = @_;
+
+    return ('response is not an array') unless ref $response eq 'ARRAY';
+    for my $xref ( @$response ) {
+        # TODO: validate the xref
+    }
+    return;
 }
 
 1;
