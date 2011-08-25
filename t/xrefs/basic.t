@@ -38,7 +38,7 @@ test_constellation(
                 'X-bar'  => 'fogbat',
                 'X-zee'  => 'zaz',
               ],
-              [ qq|[{ "twee": "zee", "query": "$env->{QUERY_STRING}" }]| ],
+              [ qq|{ "xrefs" : [{ "twee": "zee", "query": "$env->{QUERY_STRING}" }] }| ],
             ];
         },
 
@@ -62,9 +62,9 @@ test_constellation(
         is $data->{cromulence}{foo_bar}{http_status}, 200,
            'foo_bar subsite response is OK';
         is $data->{monkeys}{foo_bar}{http_status}, 200;
-        is $data->{cromulence}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
-        is $data->{monkeys}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
-        is $data->{monkeys}{foo_bar}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{cromulence}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
 
         ok !exists $data->{cromulence}{nosupport},
             '404 response from nosupport subsite, so not included in results';

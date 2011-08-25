@@ -24,7 +24,6 @@ __PACKAGE__->config(
     default   => 'application/json',
     );
 
-
 =head1 PUBLIC ACTIONS
 
 =head2 search_xrefs
@@ -125,13 +124,16 @@ sub decode_and_validate_response {
     my ( $self, $response ) = @_;
 
     # try to decode and validate the result
-    eval { $response->{xrefs} = $json->decode( $response->{body} ) };
+    eval { $response->{xref_set} = $json->decode( $response->{body} ) };
     if ( $@ ) {
         $self->_set_error_response( $response, 'xref data not valid JSON' );
     } elsif ( not $response->{http_status} == 200 ) {
         $self->_set_error_response( $response, "subsite returned HTTP status $response->{http_status}" );
-    } elsif ( my @errors = $self->validate_xref_response($response->{xrefs}) ) {
+    } elsif ( my @errors = $self->validate_xref_response( $response->{xref_set} ) ) {
         $self->_set_error_response( $response, join( ', ', @errors) );
+    } else {
+        # on success, delete the body
+        delete $response->{body};
     }
     delete $response->{is_finished};
 
@@ -166,12 +168,13 @@ sub postprocess_xrefs : Private {
 
     # add a default tag of the subsite description, name, or shortname
     # any to xrefs that have no tags
-    $c->forward('add_default_xref_tags');
+    $c->forward('add_subsite_tags_to_xrefs');
 }
 
-# add a default tag of the subsite description, name, or shortname
-# any to xrefs that have no tags
-sub add_default_xref_tags : Private {
+# add the subsite's tags to the xref if it has them, and if the xref
+# has no tags at all, make sure it has at least one, using the subsite
+# description, name, or shortname as a tag if it has to
+sub add_subsite_tags_to_xrefs : Private {
     my ( $self, $c ) = @_;
 
     my $response = $c->stash->{responses};
@@ -181,13 +184,20 @@ sub add_default_xref_tags : Private {
             my $subsite = $subsite_result->{subsite}
                 or next; # skip if no subsite for some reason
 
-            for my $xref ( @{$subsite_result->{xrefs}} ) {
+            next unless $subsite_result->{xref_set};
+
+            for my $xref ( @{$subsite_result->{xref_set}{xrefs}} ) {
+
+                # add the subsite's tags to the end
+                push @{ $xref->{tags} ||= [] }, @{$subsite->tags};
+
+                # use the subsite's other attributes as tags if necessary
                 unless( $xref->{tags} && scalar @{ $xref->{tags} } ) {
                     #warn "making a default tag for ".$subsite->name;
-                    @{$xref->{tags}} = scalar @{$subsite->tags} ? @{$subsite->tags}
-                                     :    $subsite->description
-                                       || $subsite->name
-                                       || $subsite->shortname;
+                    @{$xref->{tags}} = ( $subsite->description
+                                         || $subsite->name
+                                         || $subsite->shortname,
+                                       );
                 }
             }
         }
@@ -242,17 +252,18 @@ sub _make_request_args {
 sub _set_error_response {
     my ( $self, $response, $message ) = @_;
     $response->{error_message} = $message;
-    $response->{error_content} = delete $response->{xrefs};
+    delete $response->{xref_set};
 }
 
 # return true if the response data is valid, false if not
 sub validate_xref_response {
     my ( $self, $response ) = @_;
 
-    return ('response is not an array') unless ref $response eq 'ARRAY';
-    for my $xref ( @$response ) {
+    return ('response is not a hashref') unless ref $response eq 'HASH';
+    for my $xref ( @{ $response->{xrefs} || [] } ) {
         # TODO: validate the xref
     }
+
     return;
 }
 
