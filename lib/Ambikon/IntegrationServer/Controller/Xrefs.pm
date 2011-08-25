@@ -40,6 +40,9 @@ Done in parallel with nonblocking HTTP requests.
 
 C<q>: query string to pass to subsites
 
+Other query parameters are considered hints, and will be forwarded on
+to the subsites unmodified.
+
 =cut
 
 
@@ -50,17 +53,17 @@ sub search_xrefs_GET : Private {
 
     $c->forward('common_params');
     $c->forward('query_subsites');
-
     $c->forward('filter_missing_responses');
     $c->forward('interpret_responses');
 }
 
+
+# filter out 404 and empty responses (due to timeouts and such)
 sub filter_missing_responses : Private {
     my ( $self, $c ) = @_;
 
     my $responses = $c->stash->{responses};
 
-    # filter out 404 and timeout responses, and validate rest of the responses
     for my $query ( keys %$responses ) {
         my $q_responses = $responses->{$query};
         for my $subsite_name ( keys %$q_responses ) {
@@ -72,12 +75,12 @@ sub filter_missing_responses : Private {
     }
 }
 
-
+# decode and validate the responses from the subsites, finalize our
+# response to the caller
 sub interpret_responses : Private {
     my ( $self, $c ) = @_;
     my $responses = $c->stash->{responses};
 
-    # filter out 404 and timeout responses, and validate rest of the responses
     for my $query ( keys %$responses ) {
         my $q_responses = $responses->{$query};
         for my $subsite_name ( keys %$q_responses ) {
@@ -93,6 +96,7 @@ sub interpret_responses : Private {
      );
 }
 
+# run the Xref queries on each of the subsites
 sub query_subsites :Private {
     my ( $self, $c ) = @_;
 
@@ -116,6 +120,7 @@ sub query_subsites :Private {
     $self->http_parallel_requests( $c, @jobs );
 }
 
+# helper method to decode and validate the response from a single subsite
 sub decode_and_validate_response {
     my ( $self, $response ) = @_;
 
@@ -132,40 +137,8 @@ sub decode_and_validate_response {
 
 }
 
-=head2 search_xrefs_html
-
-Public path: /ambikon/xrefs/search_html
-
-Valid Method(s): GET
-
-Same arguments as L<search_xrefs>, but returns only HTML containing a
-basic rendering of the Xrefs that were returned.  This is a convenient
-way to get up and running quickly for applications that merely want to
-pass a view of the Xrefs directly on to a user.
-
-Done in parallel with nonblocking HTTP requests.
-
-=head3 Query Params
-
-C<q>: query string to pass to subsites
-
-=cut
-
-
-sub search_xrefs_html : Path('/ambikon/xrefs/search_html') {
-    my ( $self, $c ) = @_;
-
-    # call the search_xrefs on each site with a hint that we would
-    # like text/html renderings
-
-    # make default renderings for any xrefs that don't have them
-
-    # 
-
-}
-
-########### helper methods and actions ##############
-
+# helper action to validate our input parameters (from the client or
+# subsite that is calling this Xref service)
 sub common_params :Private {
     my ( $self, $c ) = @_;
 
