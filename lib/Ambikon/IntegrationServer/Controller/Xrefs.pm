@@ -8,6 +8,8 @@ package Ambikon::IntegrationServer::Controller::Xrefs;
 use Moose;
 use namespace::autoclean;
 
+use Storable 'dclone';
+
 use JSON::Any; my $json = JSON::Any->new;
 use URI::Escape;
 
@@ -46,7 +48,10 @@ sub search_xrefs : Path('/ambikon/xrefs/search') Args(0) ActionClass('REST') {}
 sub search_xrefs_GET {
     my ( $self, $c ) = @_;
 
-    my $queries = $c->forward('ensure_queries');
+    $c->forward('common_params');
+
+    my $queries = $c->stash->{queries};
+    my $hints   = $c->stash->{hints};
 
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
@@ -56,7 +61,9 @@ sub search_xrefs_GET {
         sub {
             my ( $subsite ) = @_;
             my $response_slot = $responses->{$query}{$subsite->name} = {};
-            return $self->_make_subsite_xrefs_request( $c, $subsite, $query, $response_slot );
+            return $self->_make_subsite_xrefs_request(
+                     $c, $subsite, { %$hints, q => $query, }, $response_slot
+                   );
         }
     } @$queries;
 
@@ -94,10 +101,13 @@ sub search_xrefs_GET {
 
 ########### helper methods and actions ##############
 
-sub ensure_queries :Private {
+sub common_params :Private {
     my ( $self, $c ) = @_;
-    # get our queries from whatever params we got
-    my $queries = $c->req->params->{'q'};
+
+    my $params = dclone $c->req->params;
+
+    # stash our queries
+    my $queries = delete $params->{'q'};
     unless( $queries ) {
         $self->status_bad_request( $c,
             message => 'must provide query param "q"'
@@ -105,8 +115,10 @@ sub ensure_queries :Private {
         return;
     }
     $queries = [$queries] unless ref $queries;
+    $c->stash->{queries} = $queries;
 
-    return  $c->stash->{queries} = $queries;
+    # stash the rest of our params as hints
+    $c->stash->{hints} = $params;
 }
 
 
@@ -161,7 +173,8 @@ sub _make_subsite_xrefs_request {
 
     # set up url
     my $url = $subsite->internal_url->clone;
-    $url->path_query( $url->path.'/ambikon/xrefs/search?q='.uri_escape( $query ) );
+    $url->path( $url->path.'/ambikon/xrefs/search' );
+    $url->query_form( $query );
 
     # initialize the response slot
     @{$response_slot}{qw{ subsite query http_status body is_finished }} = (
