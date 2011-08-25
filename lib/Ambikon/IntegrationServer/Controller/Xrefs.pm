@@ -45,17 +45,63 @@ C<q>: query string to pass to subsites
 
 sub search_xrefs : Path('/ambikon/xrefs/search') Args(0) ActionClass('REST') {}
 
-sub search_xrefs_GET {
+sub search_xrefs_GET : Private {
     my ( $self, $c ) = @_;
 
     $c->forward('common_params');
+    $c->forward('query_subsites');
+
+    $c->forward('filter_missing_responses');
+    $c->forward('interpret_responses');
+}
+
+sub filter_missing_responses : Private {
+    my ( $self, $c ) = @_;
+
+    my $responses = $c->stash->{responses};
+
+    # filter out 404 and timeout responses, and validate rest of the responses
+    for my $query ( keys %$responses ) {
+        my $q_responses = $responses->{$query};
+        for my $subsite_name ( keys %$q_responses ) {
+            my $response = $q_responses->{$subsite_name};
+            unless( defined $response->{http_status} && $response->{http_status} != 404 ) {
+                delete $responses->{$query}{$subsite_name};
+            }
+        }
+    }
+}
+
+
+sub interpret_responses : Private {
+    my ( $self, $c ) = @_;
+    my $responses = $c->stash->{responses};
+
+    # filter out 404 and timeout responses, and validate rest of the responses
+    for my $query ( keys %$responses ) {
+        my $q_responses = $responses->{$query};
+        for my $subsite_name ( keys %$q_responses ) {
+            my $response = $q_responses->{$subsite_name};
+            $self->decode_and_validate_response( $response );
+        }
+    }
+
+    $c->forward('postprocess_xrefs');
+
+    $self->status_ok( $c,
+        entity => $responses,
+     );
+}
+
+sub query_subsites :Private {
+    my ( $self, $c ) = @_;
 
     my $queries = $c->stash->{queries};
     my $hints   = $c->stash->{hints};
 
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
-    my $responses = {};
+    my $responses = $c->stash->{responses} = {};
     my @jobs = map {
         my $query = $_;
         sub {
@@ -68,36 +114,55 @@ sub search_xrefs_GET {
     } @$queries;
 
     $self->http_parallel_requests( $c, @jobs );
-
-    # filter out 404 and timeout responses, and validate rest of the responses
-    for my $query ( keys %$responses ) {
-        my $q_responses = $responses->{$query};
-        for my $subsite_name ( keys %$q_responses ) {
-            my $response = $q_responses->{$subsite_name};
-            if( defined $response->{http_status} && $response->{http_status} != 404 ) {
-                # try to decode and validate the result
-                eval { $response->{xrefs} = $json->decode( $response->{body} ) };
-                if( $@ ) {
-                    $self->_set_error_response( $response, 'xref data not valid JSON' );
-                } elsif( not $response->{http_status} == 200 ) {
-                    $self->_set_error_response( $response, "subsite returned HTTP status $response->{http_status}" );
-                } elsif( my @errors = $self->validate_xref_response($response->{xrefs}) ) {
-                    $self->_set_error_response( $response, join( ', ', @errors) );
-                }
-                delete $response->{is_finished};
-            } else {
-                delete $responses->{$query}{$subsite_name};
-            }
-        }
-    }
-
-    $self->status_ok( $c,
-        entity => $responses,
-     );
-
-    $c->forward('postprocess_xrefs');
 }
 
+sub decode_and_validate_response {
+    my ( $self, $response ) = @_;
+
+    # try to decode and validate the result
+    eval { $response->{xrefs} = $json->decode( $response->{body} ) };
+    if ( $@ ) {
+        $self->_set_error_response( $response, 'xref data not valid JSON' );
+    } elsif ( not $response->{http_status} == 200 ) {
+        $self->_set_error_response( $response, "subsite returned HTTP status $response->{http_status}" );
+    } elsif ( my @errors = $self->validate_xref_response($response->{xrefs}) ) {
+        $self->_set_error_response( $response, join( ', ', @errors) );
+    }
+    delete $response->{is_finished};
+
+}
+
+=head2 search_xrefs_html
+
+Public path: /ambikon/xrefs/search_html
+
+Valid Method(s): GET
+
+Same arguments as L<search_xrefs>, but returns only HTML containing a
+basic rendering of the Xrefs that were returned.  This is a convenient
+way to get up and running quickly for applications that merely want to
+pass a view of the Xrefs directly on to a user.
+
+Done in parallel with nonblocking HTTP requests.
+
+=head3 Query Params
+
+C<q>: query string to pass to subsites
+
+=cut
+
+
+sub search_xrefs_html : Path('/ambikon/xrefs/search_html') {
+    my ( $self, $c ) = @_;
+
+    # call the search_xrefs on each site with a hint that we would
+    # like text/html renderings
+
+    # make default renderings for any xrefs that don't have them
+
+    # 
+
+}
 
 ########### helper methods and actions ##############
 
@@ -136,7 +201,7 @@ sub postprocess_xrefs : Private {
 sub add_default_xref_tags : Private {
     my ( $self, $c ) = @_;
 
-    my $response = $c->stash->{rest};
+    my $response = $c->stash->{responses};
     for my $result_set ( values %$response ) {
         for my $subsite_result ( values %$result_set ) {
 
