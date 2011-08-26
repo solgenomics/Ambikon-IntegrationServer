@@ -38,11 +38,30 @@ test_constellation(
                 'X-bar'  => 'fogbat',
                 'X-zee'  => 'zaz',
               ],
-              [ qq|{ "xrefs": [{ "text": "twee", "url": "zee", "query": "$env->{QUERY_STRING}" }]}| ],
+              [ $json->encode({
+                  xrefs => [ { text  => "twee",
+                               url   => "zee",
+                               "query" => "$env->{QUERY_STRING}",
+                             },
+                           ],
+                })
+              ]
             ];
         },
 
-        sub { [ 200, [], ['baz baby'] ] },
+        sub { my $env = shift;
+              [ 200,
+                [],
+                [ $json->encode({
+                    xrefs => [
+                               { text => 'hihi, and btw the query is '.$env->{QUERY_STRING},
+                                 url  => 'noggin',
+                               },
+                             ],
+                   })
+                ],
+              ]
+            },
 
         sub { [ 404, [], ['Not found']] },
       ],
@@ -53,10 +72,12 @@ test_constellation(
         $mech->get_ok('/ambikon/xrefs/search_html?q=cromulence&q=monkeys');
         $mech->content_contains( 'twee', 'got xref response from subsite 1' );
         $mech->content_contains( 'href="zee"', 'got a link to zee from subsite 1' );
-        $mech->content_lacks( 'baz', 'got xref response from subsite 2' );
+        $mech->content_contains( 'query is q=cromulence', 'see an xref for cromulence' );
+        $mech->content_contains( 'query is q=monkeys', 'see an xref for monkeys' );
+        $mech->content_lacks( 'Not found', 'got xref response from subsite 2' );
         $mech->content_lacks( "<$_ ", "does not have $_ opening tag" ) for qw( html body );
 
-        #diag $mech->content;
+        diag $mech->content;
     },
   );
 
