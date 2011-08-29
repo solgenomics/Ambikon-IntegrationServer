@@ -36,7 +36,10 @@ sub render {
             .$body,
        })->code;
 
-    return (eval $code)->( $self->_app, $self );
+    my $sub = eval $code
+       or die "could not compile template";
+
+    return $sub->( $self->_app, $self );
 }
 
 

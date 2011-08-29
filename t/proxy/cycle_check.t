@@ -5,10 +5,10 @@ use Test::More;
 use JSON::Any;  my $json = JSON::Any->new;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation filter_env /;
 
 # test a basic conf with 1 backend
-test_proxy(
+test_constellation(
     conf => <<'',
 <subsite cycle_detection_test>
   internal_url   http://$host:$ambikon_port/foo/bar

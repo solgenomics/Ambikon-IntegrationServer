@@ -1,5 +1,5 @@
 package #hide from PAUSE
-  Ambikon::IntegrationServer::Test::Proxy;
+  Ambikon::IntegrationServer::Test::Constellation;
 use strict;
 use warnings;
 
@@ -7,11 +7,11 @@ use Test::TCP;
 use Plack::Loader;
 
 use base 'Exporter';
-our @EXPORT_OK = ( 'test_proxy', 'filter_env' );
+our @EXPORT_OK = ( 'test_constellation', 'filter_env' );
 
 use Ambikon::IntegrationServer::Test::WWWMechanize;
 
-sub test_proxy {
+sub test_constellation {
     my %args = @_;
 
     my $host     = $args{host} || '127.0.0.1';
@@ -65,7 +65,7 @@ sub test_proxy {
             }
 
             close STDOUT;
-            close STDERR;
+            close STDERR unless $ENV{CATALYST_DEBUG};
 
             require Ambikon::IntegrationServer;
             Ambikon::IntegrationServer->setup_engine('HTTP');
@@ -80,7 +80,7 @@ sub test_proxy {
         );
 
     # call the client code with the configured mech
-    $args{client}->( $mech );
+    $args{client}->( $mech, $ambikon_server );
 }
 
 # takes an env hashref and filters out psgi vars (many of which can't

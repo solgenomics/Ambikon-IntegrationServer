@@ -3,7 +3,7 @@ extlib/
 inc/
 *~
 #*#
+.#*
 Makefile
 META.*
 blib/
-

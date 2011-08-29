@@ -4,10 +4,10 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation /;
 
 # test a basic conf with 1 backend
-test_proxy(
+test_constellation(
     conf => <<'EOC',
 theme_from_subsite  mainsite
 

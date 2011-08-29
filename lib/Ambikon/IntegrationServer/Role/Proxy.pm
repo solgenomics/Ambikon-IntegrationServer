@@ -27,7 +27,9 @@ sub build_internal_req_body {
         my $u = URI->new;
         $u->query_form( $c->req->body_params );
         my $body_string = $u->query;
-        $internal_headers->content_length( length $body_string );
+        if( defined $body_string ) {
+            $internal_headers->content_length( length $body_string );
+        }
         return $body_string;
     }
     elsif( $type =~ m!^multipart/form-data\b!i ) {
@@ -119,14 +121,17 @@ sub build_internal_req_headers {
     # add an X-Forwarded-For
     $headers->push_header( 'X-Forwarded-For', $c->req->hostname || $c->req->address );
 
+    # add a Via header listing this server, and check for request
+    # cycles while doing so
     my $via = $self->_via_str( $c );
-    if( my $existing_via = $headers->header('Via') ) {
+    if( my $existing_via = $headers->header( 'Via' ) ) {
         index( $existing_via, $via ) == -1
             or die "Cycle of Ambikon self-requests detected for URL ".$c->req->uri.".  Please check the integration server configuration for incorrect internal URLs.\n";
     }
     $headers->push_header( 'Via', $via );
 
-    $headers->header( 'X-Ambikon', $c->version);
+    $headers->header( 'X-Ambikon-Version', $c->version );
+    $headers->header( 'X-Ambikon-Server-Url', 'http://'.$self->ambikon_host_and_port($c).'/ambikon' );
 
     return $headers;
 }
@@ -170,7 +175,7 @@ sub build_external_res_headers {
             );
 
     $h->push_header( 'Via', $self->_via_str($c ) );
-    $h->header( 'X-Ambikon', $c->version);
+    $h->header( 'X-Ambikon-Version', $c->version);
 
     return $h;
 }
@@ -178,8 +183,19 @@ sub build_external_res_headers {
 sub _via_str {
     my ( $self, $c ) = @_;
 
+    return '1.1 '.$self->ambikon_host_and_port($c).' (Ambikon/'.$c->version.')';
+}
+
+sub ambikon_host_and_port {
+    my ( $self, $c ) = @_;
+
     my $u = $c->req->uri;
-    return '1.1 '.$u->host.( $u->_port ? ':'.$u->_port : '' ).' (Ambikon/'.$c->version.')';
+    my $host = $u->host;
+    my $port = $u->_port;
+
+    return wantarray
+        ? ( $host, $port )
+        : $host.( $port ? ':'.$port : '' );
 }
 
 

@@ -8,10 +8,10 @@ use JSON::Any;  my $json = JSON::Any->new;
 use URI;
 
 use lib 't/lib';
-use Ambikon::IntegrationServer::Test::Proxy qw/ test_proxy filter_env /;
+use Ambikon::IntegrationServer::Test::Constellation qw/ test_constellation filter_env /;
 
 # test a basic conf with 1 backend
-test_proxy(
+test_constellation(
     conf => <<'',
 <subsite foo_bar>
   internal_url   http://$host:$port/monkeys
@@ -60,7 +60,12 @@ test_proxy(
           my $request_env = $response->{env};
           is $request_env->{HTTP_X_NOGGIN}, 'bumbumchicken', 'headers from user request passed through proxy';
           is $request_env->{HTTP_X_CROMULENCE}, 'confirmed', 'headers from user request passed through proxy';
-          like $request_env->{HTTP_X_FORWARDED_FOR}, qr/^[\w\.]+$/, 'got X-Forwarded-For header also';
+          like $request_env->{HTTP_X_FORWARDED_FOR}, qr/^[\w\.]+$/,
+               'got X-Forwarded-For header also';
+          like $request_env->{HTTP_X_AMBIKON_VERSION}, qr/[\.\d]+/,
+               'got an X-Ambikon-Version header';
+          like $request_env->{HTTP_X_AMBIKON_SERVER_URL}, qr!http://[^:]+:\d+/ambikon!,
+               'got right X-Ambikon-Server-Url header';
         }
 
         { # redirect response
