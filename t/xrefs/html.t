@@ -77,7 +77,7 @@ test_constellation(
         $mech->content_lacks( 'Not found', 'got xref response from subsite 2' );
         $mech->content_lacks( "<$_ ", "does not have $_ opening tag" ) for qw( html body );
 
-        diag $mech->content;
+        #diag $mech->content;
     },
   );
 
