@@ -13,6 +13,7 @@ requires      'Ambikon::Subsite' => 0;
 requires      'AnyEvent::HTTP' => 0;
 requires      'Catalyst::Action::RenderView';
 requires      'Catalyst::Component::ApplicationAttribute' => 0;
+requires      'Catalyst::Controller::REST' => 0;
 requires      'Catalyst::Runtime' => '5.80031';
 requires      'Catalyst::Plugin::ConfigLoader';
 requires      'Catalyst::Plugin::Static::Simple';
