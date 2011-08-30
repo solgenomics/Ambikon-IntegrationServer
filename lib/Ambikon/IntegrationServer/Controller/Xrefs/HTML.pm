@@ -74,6 +74,7 @@ sub assemble_renderings : Private {
       );
 
     $c->res->status(200);
+    $c->res->content_type('text/html');
     $c->res->body( $whole_body );
 }
 
