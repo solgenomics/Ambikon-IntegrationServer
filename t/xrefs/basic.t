@@ -24,6 +24,11 @@ test_constellation(
  internal_url   http://$host:$port3/
  external_path  /nosupport
 </subsite>
+<subsite excluded_test>
+ internal_url   http://$host:$port4
+ external_path  /excl
+ tags  exclude_me_please
+</subsite>
 <subsite nonexistent>
  internal_url   http://$host:1/
  external_path  /nonexistent
@@ -45,12 +50,22 @@ test_constellation(
         sub { [ 200, [], ['baz baby'] ] },
 
         sub { [ 404, [], ['Not found']] },
+
+        sub {
+            my $env = shift;
+            [ 200,
+              [],
+              [
+                qq|{ "xrefs" : [{ "url":"uh-oh", "text": "this should be excluded!", "query": "$env->{QUERY_STRING}" }] }|
+              ]
+            ]
+        },
       ],
 
     client => sub {
         my $mech = shift;
         my $start_time = time;
-        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys');
+        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys&exclude=exclude_me_please');
         $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
         $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );
 
@@ -65,6 +80,8 @@ test_constellation(
         is $data->{cromulence}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
         is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
         is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
+
+        ok !exists $data->{cromulence}{excluded_test}, 'excluded subsite not there';
 
         ok !exists $data->{cromulence}{nosupport},
             '404 response from nosupport subsite, so not included in results';

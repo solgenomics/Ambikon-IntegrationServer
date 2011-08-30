@@ -102,6 +102,8 @@ sub query_subsites :Private {
     my $queries = $c->stash->{queries};
     my $hints   = $c->stash->{hints};
 
+    my $discriminator = $self->_make_subsite_discriminator( $hints );
+
     # proxy it out in parallel to all the subsites that are registered
     # as providing xrefs
     my $responses = $c->stash->{responses} = {};
@@ -109,6 +111,7 @@ sub query_subsites :Private {
         my $query = $_;
         sub {
             my ( $subsite ) = @_;
+            return unless $discriminator->( $subsite );
             my $response_slot = $responses->{$query}{$subsite->name} = {};
             return $self->_make_subsite_xrefs_request(
                      $c, $subsite, { %$hints, q => $query, }, $response_slot
@@ -117,6 +120,27 @@ sub query_subsites :Private {
     } @$queries;
 
     $self->http_parallel_requests( $c, @jobs );
+}
+
+# process any 'exclude' hint, making a sub ref that returns true if
+# the subsite should be queried, false if not.  if no exclude hint,
+# just return a sub ref that always returns true.
+sub _make_subsite_discriminator {
+    my ( $self, $hints ) = @_;
+    my $exclude = $hints->{exclude}
+        or return sub { 1 };
+    my %exclude = map { $_ => 1 } ( ref $exclude ? @$exclude : ( $exclude ) );
+
+    return sub { 1 } unless %exclude;
+
+    return sub {
+        my ( $subsite ) = @_;
+        my @idents = @{ $subsite->tags }, $subsite->name, $subsite->shortname;
+        for ( @idents ) {
+            return 0 if $exclude{$_};
+        }
+        return 1;
+    };
 }
 
 # helper method to decode and validate the response from a single subsite

@@ -22,6 +22,8 @@ sub http_parallel_requests {
 
             my ( $method, $url, @ae_http_args ) = $job->( $subsite );
 
+            next unless $method; #< job returns nothing if it wants to skip this subsite
+
             # make sure the ending subroutine is present, and calls $cv->end
             my $end_sub;
             if( scalar @ae_http_args % 2 ) {
