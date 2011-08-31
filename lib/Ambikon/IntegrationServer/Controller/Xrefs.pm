@@ -127,20 +127,32 @@ sub query_subsites :Private {
 # just return a sub ref that always returns true.
 sub _make_subsite_discriminator {
     my ( $self, $hints ) = @_;
-    my $exclude = $hints->{exclude}
-        or return sub { 1 };
-    my %exclude = map { $_ => 1 } ( ref $exclude ? @$exclude : ( $exclude ) );
+    my %exclude = $self->_hash_param_list( $hints->{exclude_tag} || $hints->{exclude} );
+    my %with    = $self->_hash_param_list( $hints->{with_tag}    );
 
-    return sub { 1 } unless %exclude;
+    return sub { 1 } unless %exclude || %with;
 
     return sub {
         my ( $subsite ) = @_;
-        my @idents = @{ $subsite->tags }, $subsite->name, $subsite->shortname;
+        my @idents = ( @{ $subsite->tags }, $subsite->name, $subsite->shortname );
         for ( @idents ) {
             return 0 if $exclude{$_};
         }
+        if( %with ) {
+            return 0 unless grep $with{$_}, @idents;
+        }
         return 1;
     };
+}
+
+# helper method that takes a scalar or arrayref and indexes it into a
+# hash-style list like ( elem => 1, elem_2 => 1, ... )
+sub _hash_param_list {
+    my ( $self, $list ) = @_;
+    return unless $list;
+    return map { $_ => 1 } (
+        ref $list ? @$list : ( $list )
+    );
 }
 
 # helper method to decode and validate the response from a single subsite

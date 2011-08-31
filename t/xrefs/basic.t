@@ -43,7 +43,7 @@ test_constellation(
                 'X-bar'  => 'fogbat',
                 'X-zee'  => 'zaz',
               ],
-              [ qq|{ "xrefs" : [{ "twee": "zee", "query": "$env->{QUERY_STRING}" }] }| ],
+              [ qq|{ "xrefs" : [{ "twee": "zee", "query": "$env->{QUERY_STRING}", "tags": ["hihi"] }] }| ],
             ];
         },
 
@@ -65,7 +65,7 @@ test_constellation(
     client => sub {
         my $mech = shift;
         my $start_time = time;
-        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys&exclude=exclude_me_please');
+        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys&exclude_tag=exclude_me_please');
         $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
         $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );
 
@@ -77,9 +77,8 @@ test_constellation(
         is $data->{cromulence}{foo_bar}{http_status}, 200,
            'foo_bar subsite response is OK';
         is $data->{monkeys}{foo_bar}{http_status}, 200;
-        is $data->{cromulence}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
-        is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
-        is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[0], 'foobartag!';
+        is $data->{cromulence}{foo_bar}{xref_set}{xrefs}[0]{tags}[1], 'foobartag!';
+        is $data->{monkeys}{foo_bar}{xref_set}{xrefs}[0]{tags}[1], 'foobartag!';
 
         ok !exists $data->{cromulence}{excluded_test}, 'excluded subsite not there';
 
@@ -88,6 +87,12 @@ test_constellation(
         ok !exists $data->{cromulence}{nonexistent},
             'nonexistent site is down, so not included in xrefs';
 
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=foobartag!' );
+        $data = $json->decode( $mech->content );
+
+        is scalar( values %{$data->{noggin}} ), 1, 'only 1 subsite matches foobartag!';
+        is scalar( @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}), 1, 'got 1 xref from foo_bar subsite';
 
     },
   );
