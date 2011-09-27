@@ -42,6 +42,10 @@ C<q>: query string to pass to subsites
 Other query parameters are considered hints, and will be forwarded on
 to the subsites unmodified.
 
+=head3 Output
+
+TODO: document data structure here
+
 =cut
 
 
@@ -53,7 +57,24 @@ sub search_xrefs_GET : Private {
     $c->forward('common_params');
     $c->forward('query_subsites');
     $c->forward('filter_missing_responses');
-    $c->forward('interpret_responses');
+    $c->forward('interpret_subsite_responses');
+    $c->forward('format_client_response');
+}
+
+# rearrange the response data if needed based on the 'format' query
+# param
+sub format_client_response : Private {
+    my ( $self, $c ) = @_;
+
+    my ( $format, $responses ) = @{$c->stash}{qw{ format responses }};
+
+    if( $format eq 'flat_array' ) {
+        # rearrange the Xrefs to just be a flat list
+        $responses = [ map @{$_->{xref_set}->{xrefs}}, map values %$_, values %$responses ];
+    }
+
+    # finally, set our response
+    $self->status_ok( $c, entity => $responses );
 }
 
 
@@ -76,7 +97,7 @@ sub filter_missing_responses : Private {
 
 # decode and validate the responses from the subsites, finalize our
 # response to the caller
-sub interpret_responses : Private {
+sub interpret_subsite_responses : Private {
     my ( $self, $c ) = @_;
     my $responses = $c->stash->{responses};
 
@@ -89,10 +110,6 @@ sub interpret_responses : Private {
     }
 
     $c->forward('postprocess_xrefs');
-
-    $self->status_ok( $c,
-        entity => $responses,
-     );
 }
 
 # run the Xref queries on each of the subsites
@@ -195,6 +212,19 @@ sub common_params :Private {
 
     # stash the rest of our params as hints
     $c->stash->{hints} = $params;
+
+    # validate our format param and stash its value as 'format'
+    {
+        $c->stash->{format} = my $format = $params->{format} || 'default';
+
+        { flat_array => 1, default => 1 }->{$format}
+           or $self->status_bad_request( $c,
+                message => 'invalid format argument, currently only "array" and "default" are supported',
+              );
+    }
+
+
+    return 1;
 }
 
 
