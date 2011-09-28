@@ -177,7 +177,8 @@ sub decode_and_validate_response {
     my ( $self, $response ) = @_;
 
     # try to decode and validate the result
-    eval { $response->{xref_set} = $json->decode( $response->{body} ) };
+    my $set;
+    eval { $set = $response->{xref_set} = $json->decode( $response->{body} ) };
     if ( $@ ) {
         $self->_set_error_response( $response, 'xref data not valid JSON' );
     } elsif ( not $response->{http_status} == 200 ) {
@@ -187,6 +188,12 @@ sub decode_and_validate_response {
     } else {
         # on success, delete the body
         delete $response->{body};
+
+        # add __CLASS__ attributes to the xrefset and xrefs if they don't have them
+        $set->{__CLASS__} ||= [ 'Ambikon::XrefSet' ];
+        for my $x ( @{ $set->{xrefs} || [] } ) {
+            $x->{__CLASS__} ||= [ 'Ambikon::Xref' ];
+        }
     }
     delete $response->{is_finished};
 
