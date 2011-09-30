@@ -70,7 +70,7 @@ sub format_client_response : Private {
 
     if( $format eq 'flat_array' ) {
         # rearrange the Xrefs to just be a flat list
-        $responses = [ map @{$_->{xref_set}->{xrefs}}, map values %$_, values %$responses ];
+        $responses = [ map @{$_->{xref_set}->{xrefs} || []}, map values %$_, values %$responses ];
     }
 
     # finally, set our response
