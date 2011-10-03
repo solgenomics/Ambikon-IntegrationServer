@@ -40,11 +40,6 @@ sub search_xrefs_html : Path('/ambikon/xrefs/search_html') Args(0) {
     # make default renderings for any xrefs that don't have them
     $c->req->params->{renderings} = 'text/html';
     $c->forward( 'search_xrefs' );
-    $c->forward( 'assemble_renderings' );
-}
-
-sub assemble_renderings : Private {
-    my ( $self, $c ) = @_;
 
     # break up and regroup xref sets that do not have their own
     # text/html rendering
