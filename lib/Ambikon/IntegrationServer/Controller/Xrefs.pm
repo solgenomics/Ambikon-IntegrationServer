@@ -61,6 +61,9 @@ sub search_xrefs_GET : Private {
     $c->forward('format_client_response');
 }
 
+sub _list(@) {
+    map { $_ && ref $_ eq 'ARRAY' ? @$_ : $_ } @_
+}
 # rearrange the response data if needed based on the 'format' query
 # param
 sub format_client_response : Private {
@@ -71,6 +74,16 @@ sub format_client_response : Private {
     if( $format eq 'flat_array' ) {
         # rearrange the Xrefs to just be a flat list
         $responses = [ map @{$_->{xref_set}->{xrefs} || []}, map values %$_, values %$responses ];
+    }
+    else {
+        # render overall html if they requested html renderings
+        if( grep $_ && $_ eq 'text/html', _list $c->stash->{hints}{renderings} ) {
+            $c->stash->{xref_set_should_regroup} = sub { ! shift->rendering('text/html') };
+            $c->forward('/xrefs/html/group_xrefs');
+
+            $responses->{renderings}{'text/html'} =
+                $c->view('Xrefs::HTML')->render( $c->stash->{xref_sets} );
+        }
     }
 
     # finally, set our response
