@@ -30,6 +30,16 @@ sub process {
 
     #warn "rendering sets: ".Data::Dump::dump( $sets );
 
+    my $whole_body =  $self->render( $sets );
+
+    $c->res->status( 200 );
+    $c->res->content_type( 'text/html' );
+    $c->res->body( $whole_body );
+}
+
+sub render {
+    my ( $self, $sets ) = @_;
+
     my $whole_body = join_lines (
         qq|<dl class="ambikon_xref ambikon">|,
         ( map {
@@ -43,10 +53,9 @@ sub process {
         qq|</dl>|,
       );
 
-    $c->res->status(200);
-    $c->res->content_type('text/html');
-    $c->res->body( $whole_body );
+    return $whole_body;
 }
+
 
 sub xref_set_html {
     my ( $self, $set ) = @_;
