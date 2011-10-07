@@ -1,5 +1,6 @@
 package Ambikon::IntegrationServer::Controller::Xrefs::HTML;
 use Moose;
+use namespace::autoclean;
 
 BEGIN { extends 'Ambikon::IntegrationServer::Controller::Xrefs' }
 
@@ -8,6 +9,7 @@ __PACKAGE__->config(
   );
 
 use Data::Visitor::Callback;
+use Storable 'dclone';
 
 use Ambikon::XrefSet;
 use Ambikon::ServerHandle;
@@ -62,8 +64,8 @@ sub group_xrefs : Private {
     # * make final response as a <dl> of category and rendered xref
     #   set (rendering being either site-provided or default)
 
-    my $responses =
-        Ambikon::ServerHandle->inflate_xref_search_result( $c->stash->{responses} );
+    my $responses = do { local $Storable::forgive_me = 1; dclone $c->stash->{responses} };
+    Ambikon::ServerHandle->inflate_xref_search_result( $responses );
 
     #warn "grouping responses: ".Data::Dump::dump( $responses );
 
