@@ -55,20 +55,26 @@ sub process {
 sub render_grouped_sets {
     my ( $self, $sets ) = @_;
 
-    my $whole_body = join_lines (
-        qq|<dl class="ambikon_xref ambikon">|,
-        ( map {
-            ( qq|   <dt class="ambikon_xref ambikon">$_</dt>|,
-              qq|       <dd>|,
-              join_lines( uniq( map $self->xref_set_html( $_ ), grep !$_->is_empty, @{ $sets->{$_} } ) ),
-              qq|       </dd>|,
-            )
+    my @sets = ( map {
+            if( my $sets = join_lines( uniq( map $self->xref_set_html( $_ ), grep !$_->is_empty, @{ $sets->{$_} } ) ) ) {
+                ( qq|   <dt class="ambikon_xref ambikon">$_</dt>|,
+                  qq|       <dd>|,
+                  $sets,
+                  qq|       </dd>|,
+                )
+            } else {
+                ()
+            }
           } sort keys %$sets,
-        ),
+        );
+
+    return unless @sets;
+
+    return join_lines (
+        qq|<dl class="ambikon_xref ambikon">|,
+        @sets,
         qq|</dl>|,
       );
-
-    return $whole_body;
 }
 
 
