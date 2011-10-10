@@ -45,8 +45,6 @@ sub process {
 
     my $sets = $c->stash->{xref_sets} || {};
 
-    warn "rendering sets: ".Data::Dump::dump( $sets );
-
     my $whole_body = $self->render_grouped_sets( $sets );
 
     $c->res->status( 200 );
