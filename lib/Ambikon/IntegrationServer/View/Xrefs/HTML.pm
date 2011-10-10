@@ -62,7 +62,7 @@ sub render_grouped_sets {
         ( map {
             ( qq|   <dt class="ambikon_xref ambikon">$_</dt>|,
               qq|       <dd>|,
-              join_lines( uniq( map $self->xref_set_html( $_ ), @{ $sets->{$_} } ) ),
+              join_lines( uniq( map $self->xref_set_html( $_ ), grep !$_->is_empty, @{ $sets->{$_} } ) ),
               qq|       </dd>|,
             )
           } sort keys %$sets,
