@@ -165,9 +165,11 @@ sub _make_subsite_discriminator {
 
     return sub {
         my ( $subsite ) = @_;
-        my @idents = ( @{ $subsite->tags }, $subsite->name, $subsite->shortname );
-        for ( @idents ) {
-            return 0 if $exclude{$_};
+        my @idents = map lc, ( @{ $subsite->tags }, $subsite->name, $subsite->shortname );
+        if( %exclude ) {
+            for ( @idents ) {
+                return 0 if $exclude{$_};
+            }
         }
         if( %with ) {
             return 0 unless grep $with{$_}, @idents;
@@ -181,7 +183,7 @@ sub _make_subsite_discriminator {
 sub _hash_param_list {
     my ( $self, $list ) = @_;
     return unless $list;
-    return map { $_ => 1 } (
+    return map { lc $_ => 1 } (
         ref $list ? @$list : ( $list )
     );
 }

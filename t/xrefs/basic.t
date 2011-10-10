@@ -88,7 +88,7 @@ test_constellation(
             'nonexistent site is down, so not included in xrefs';
 
 
-        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=foobartag!' );
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=Foobartag!' );
         $data = $json->decode( $mech->content );
 
         is scalar( values %{$data->{noggin}} ), 1, 'only 1 subsite matches foobartag!';
