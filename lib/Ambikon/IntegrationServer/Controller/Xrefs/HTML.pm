@@ -12,7 +12,7 @@ use Data::Visitor::Callback;
 use Storable 'dclone';
 
 use Ambikon::XrefSet;
-use Ambikon::Xref::Inflator;
+use Ambikon::Serializer;
 
 =head2 search_xrefs_html
 
@@ -65,7 +65,7 @@ sub group_xrefs : Private {
     #   set (rendering being either site-provided or default)
 
     my $responses = do { local $Storable::forgive_me = 1; dclone $c->stash->{responses} };
-    Ambikon::Xref::Inflator->new->inflate( $responses );
+    Ambikon::Serializer->new->inflate( $responses );
 
     #warn "grouping responses: ".Data::Dump::dump( $responses );
 
