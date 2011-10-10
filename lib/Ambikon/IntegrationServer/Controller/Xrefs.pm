@@ -82,7 +82,7 @@ sub format_client_response : Private {
             $c->forward('/xrefs/html/group_xrefs');
 
             $responses->{renderings}{'text/html'} =
-                $c->view('Xrefs::HTML')->render( $c->stash->{xref_sets} );
+                $c->view('Xrefs::HTML')->render_grouped_sets( $c->stash->{xref_sets} );
         }
     }
 

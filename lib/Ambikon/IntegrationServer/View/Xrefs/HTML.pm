@@ -10,6 +10,23 @@ extends 'Catalyst::View';
 
 use List::MoreUtils 'uniq';
 
+use Ambikon::View::Xrefs::HTML;
+
+has '_inner' => (
+  is  => 'ro',
+  lazy_build => 1,
+  handles => [qw[
+      xref_response_html
+      xref_set_html
+      xref_html
+  ]
+  ],
+);
+
+sub _build__inner {
+    Ambikon::View::Xrefs::HTML->new;
+}
+
 sub join_lines(@) {
     join '', map "$_\n", @_
 }
@@ -28,16 +45,16 @@ sub process {
 
     my $sets = $c->stash->{xref_sets} || {};
 
-    #warn "rendering sets: ".Data::Dump::dump( $sets );
+    warn "rendering sets: ".Data::Dump::dump( $sets );
 
-    my $whole_body =  $self->render( $sets );
+    my $whole_body = $self->render_grouped_sets( $sets );
 
     $c->res->status( 200 );
     $c->res->content_type( 'text/html' );
     $c->res->body( $whole_body );
 }
 
-sub render {
+sub render_grouped_sets {
     my ( $self, $sets ) = @_;
 
     my $whole_body = join_lines (
@@ -56,25 +73,5 @@ sub render {
     return $whole_body;
 }
 
-
-sub xref_set_html {
-    my ( $self, $set ) = @_;
-
-    # use the xref set's rendering if it has one
-    # otherwise make a default one
-    return $set->rendering('text/html')
-        || join '', map "$_\n", (
-               '<div class="ambikon_xref_set ambikon">',
-               uniq( map $self->xref_html( $_ ), @{$set->xrefs} ),
-               '</div>',
-             );
-
-}
-sub xref_html {
-    my ( $self, $xref ) = @_;
-
-    return $xref->rendering('text/html')
-        || qq|<a class="ambikon_xref ambikon" href="$xref->{url}">$xref->{text}</a>|;
-}
 
 1;
