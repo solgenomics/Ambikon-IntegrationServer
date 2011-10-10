@@ -96,10 +96,12 @@ test_constellation(
 
         $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=foobartag!&format=flat_array' );
         $data = $json->decode( $mech->content );
-        diag explain $data;
         is ref $data, 'ARRAY', 'data is an arrayref with flat_array format argument';
         is $data->[0]{tags}[1], 'foobartag!', 'got the right tag for the first xref';
 
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&with_tag=unsatisfiable!' );
+        $data = $json->decode( $mech->content );
+        is_deeply( $data, { noggin => {}, ziggy => {} }, 'got right response for no subsites' );
     },
   );
 

@@ -141,6 +141,7 @@ sub query_subsites :Private {
         my $query = $_;
         sub {
             my ( $subsite ) = @_;
+            $responses->{$query} ||= {};
             return unless $discriminator->( $subsite );
             my $response_slot = $responses->{$query}{$subsite->name} = {};
             return $self->_make_subsite_xrefs_request(
