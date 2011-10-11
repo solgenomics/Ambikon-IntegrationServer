@@ -65,7 +65,7 @@ test_constellation(
     client => sub {
         my $mech = shift;
         my $start_time = time;
-        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys&exclude_tag=exclude_me_please');
+        $mech->get_ok('/ambikon/xrefs/search?q=cromulence&q=monkeys&subsites_without_tag=exclude_me_please');
         $mech->content_contains( '"zee"',    'got xref response from subsite 1' );
         $mech->content_contains( 'baz baby', 'got xref response from subsite 2' );
 
@@ -88,18 +88,18 @@ test_constellation(
             'nonexistent site is down, so not included in xrefs';
 
 
-        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=Foobartag!' );
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&subsites_with_tag=Foobartag!' );
         $data = $json->decode( $mech->content );
 
         is scalar( values %{$data->{noggin}} ), 1, 'only 1 subsite matches foobartag!';
         is scalar( @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}), 1, 'got 1 xref from foo_bar subsite';
 
-        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&with_tag=foobartag!&format=flat_array' );
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&subsites_with_tag=foobartag!&format=flat_array' );
         $data = $json->decode( $mech->content );
         is ref $data, 'ARRAY', 'data is an arrayref with flat_array format argument';
         is $data->[0]{tags}[1], 'foobartag!', 'got the right tag for the first xref';
 
-        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&with_tag=unsatisfiable!' );
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=unsatisfiable!' );
         $data = $json->decode( $mech->content );
         is_deeply( $data, { noggin => {}, ziggy => {} }, 'got right response for no subsites' );
     },

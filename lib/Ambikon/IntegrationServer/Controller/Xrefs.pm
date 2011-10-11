@@ -158,8 +158,8 @@ sub query_subsites :Private {
 # just return a sub ref that always returns true.
 sub _make_subsite_discriminator {
     my ( $self, $hints ) = @_;
-    my %exclude = $self->_hash_param_list( $hints->{exclude_tag} || $hints->{exclude} );
-    my %with    = $self->_hash_param_list( $hints->{with_tag}    );
+    my %exclude = $self->_hash_param_list( $hints->{subsites_without_tag} );
+    my %with    = $self->_hash_param_list( $hints->{subsites_with_tag} );
 
     return sub { 1 } unless %exclude || %with;
 
