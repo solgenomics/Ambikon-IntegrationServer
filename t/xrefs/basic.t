@@ -102,6 +102,16 @@ test_constellation(
         $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=unsatisfiable!' );
         $data = $json->decode( $mech->content );
         is_deeply( $data, { noggin => {}, ziggy => {} }, 'got right response for no subsites' );
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag=nonexistent' );
+        $data = $json->decode( $mech->content );
+
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 0, 'no xrefs satisfy');
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag=hihi' );
+        $data = $json->decode( $mech->content );
+
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 1, 'one xref satisfies');
     },
   );
 

@@ -258,6 +258,60 @@ sub postprocess_xrefs : Private {
     # add a default tag of the subsite description, name, or shortname
     # any to xrefs that have no tags
     $c->forward('add_subsite_tags_to_xrefs');
+
+    # filter the xrefs according to any filtering criteria we have
+    $c->forward('filter_xrefs');
+}
+
+# filter the xrefs according to any filtering criteria we have, also
+# deleting any prerenderings that are invalidated by the filtering
+sub filter_xrefs : Private {
+    my ( $self, $c ) = @_;
+
+    my $hints = $c->stash->{hints};
+    my $xref_discriminator;
+    if( my %with = $self->_hash_param_list( $hints->{xrefs_with_tag} ) ) {
+        $xref_discriminator = sub {
+            my $x = shift;
+            return 0 unless grep $with{ lc $_ }, @{ $x->{tags} || [] };
+            return 1;
+        };
+    }
+    if( my %exclude = $self->_hash_param_list( $hints->{xrefs_without_tag} ) ) {
+        my $old_disc = $xref_discriminator || sub { 1 };
+        $xref_discriminator = sub {
+            my ( $x ) = @_;
+            return 0 unless $old_disc->( $x );
+            for( @{ $x->{tags} || [] } ) {
+                return 0 if $exclude{lc $_};
+            }
+            return 1;
+        };
+    }
+
+    return unless $xref_discriminator;
+
+    my $response = $c->stash->{responses};
+    my $v = Data::Visitor::Callback->new(
+        'hash' => sub {
+            # filter the xrefs in this set
+            my ( $v, $xrefset ) = @_;
+            if( my $xrefs = $xrefset->{xrefs} ) {
+                my $count_before = @$xrefs;
+                # filter the xrefs
+                @$xrefs = grep $xref_discriminator->($_), @$xrefs;
+                # delete the renderings if we lost some
+                if ( $count_before > @$xrefs ) {
+                    delete $xrefset->{renderings};
+                    delete $response->{renderings};
+                }
+            } else {
+                for ( values %$xrefset ) {
+                    $v->visit( $_ );
+                }
+            }
+        },
+    )->visit( $response );
 }
 
 # add the subsite's tags to xrefs and xrefsets if it has them, and if
