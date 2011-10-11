@@ -37,7 +37,7 @@ test_constellation(
     backends => [
         sub {
             my $env = shift;
-            sleep rand(3);
+            #sleep rand(3);
             [ 200,
               [ 'Content-type' => 'text/html',
                 'X-bar'  => 'fogbat',
