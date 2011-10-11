@@ -260,9 +260,10 @@ sub postprocess_xrefs : Private {
     $c->forward('add_subsite_tags_to_xrefs');
 }
 
-# add the subsite's tags to the xref if it has them, and if the xref
-# has no tags at all, make sure it has at least one, using the subsite
-# description, name, or shortname as a tag if it has to
+# add the subsite's tags to xrefs and xrefsets if it has them, and if
+# the xref or xrefset has no tags at all, make sure it has at least
+# one, using the subsite description, name, or shortname as a tag if
+# necessary
 sub add_subsite_tags_to_xrefs : Private {
     my ( $self, $c ) = @_;
 
@@ -275,15 +276,15 @@ sub add_subsite_tags_to_xrefs : Private {
 
             next unless $subsite_result->{xref_set};
 
-            for my $xref ( @{$subsite_result->{xref_set}{xrefs}} ) {
+            for my $thing ( $subsite_result->{xref_set}, @{$subsite_result->{xref_set}{xrefs}} ) {
 
                 # add the subsite's tags to the end
-                push @{ $xref->{tags} ||= [] }, @{$subsite->tags};
+                push @{ $thing->{tags} ||= [] }, @{$subsite->tags};
 
                 # use the subsite's other attributes as tags if necessary
-                unless( $xref->{tags} && scalar @{ $xref->{tags} } ) {
+                unless( $thing->{tags} && scalar @{ $thing->{tags} } ) {
                     #warn "making a default tag for ".$subsite->name;
-                    @{$xref->{tags}} = ( $subsite->description
+                    @{$thing->{tags}} = ( $subsite->description
                                          || $subsite->name
                                          || $subsite->shortname,
                                        );
