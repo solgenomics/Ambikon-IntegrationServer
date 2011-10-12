@@ -271,24 +271,41 @@ sub filter_xrefs : Private {
     my $hints = $c->stash->{hints};
     my $xref_discriminator;
     if( my %with = $self->_hash_param_list( $hints->{xrefs_with_tag} ) ) {
-        $xref_discriminator = sub {
+        $xref_discriminator = $self->_chain_discriminator( $xref_discriminator, sub {
             my $x = shift;
-            return 0 unless grep $with{ lc $_ }, @{ $x->{tags} || [] };
-            return 1;
-        };
+            for ( @{ $x->{tags} || [] } ) {
+                return 1 if $with{ lc $_ };
+            }
+            return 0;
+        });
     }
-    if( my %exclude = $self->_hash_param_list( $hints->{xrefs_without_tag} ) ) {
-        my $old_disc = $xref_discriminator || sub { 1 };
-        $xref_discriminator = sub {
+    if( my %without = $self->_hash_param_list( $hints->{xrefs_without_tag} ) ) {
+        $xref_discriminator = $self->_chain_discriminator( $xref_discriminator, sub {
             my ( $x ) = @_;
-            return 0 unless $old_disc->( $x );
             for( @{ $x->{tags} || [] } ) {
-                return 0 if $exclude{lc $_};
+                return 0 if $without{ lc $_ };
             }
             return 1;
-        };
+        });
     }
-
+    if( my $matching = $self->_combine_regexes( $hints->{xrefs_with_tag_matching} ) ) {
+        $xref_discriminator = $self->_chain_discriminator( $xref_discriminator, sub {
+            my ( $x ) = @_;
+            for ( @{ $x->{tags} || [] } ) {
+                return 1 if lc( $_ ) =~ $matching;
+            }
+            return 0;
+        });
+    }
+    if( my $not_matching = $self->_combine_regexes( $hints->{xrefs_with_tag_not_matching} ) ) {
+        $xref_discriminator = $self->_chain_discriminator( $xref_discriminator, sub {
+            my ( $x ) = @_;
+            for( @{ $x->{tags} || [] } ) {
+                return 0 if lc( $_ ) =~ $not_matching
+            }
+            return 1;
+        });
+    }
     return unless $xref_discriminator;
 
     my $response = $c->stash->{responses};
@@ -312,6 +329,23 @@ sub filter_xrefs : Private {
             }
         },
     )->visit( $response );
+}
+
+sub _combine_regexes {
+    my ( $self, $regexes ) = @_;
+    return unless defined $regexes;
+    $regexes = [ $regexes ] unless ref $regexes eq 'ARRAY';
+    s/[^\w\d\s\.\\(\)[\]\{\}\\]//g for @$regexes; #< sanitize the input
+    my $qr = 'qr/('.join('|',@$regexes).')/i';
+    warn "generated qr $qr\n";
+    $qr = eval $qr;
+    die $@ if $@;
+    return $qr;
+}
+
+sub _chain_discriminator {
+    my ( $self, $existing, $additional ) = @_;
+    return $existing ? sub { $existing->(@_) && $additional->(@_) } : $additional;
 }
 
 # add the subsite's tags to xrefs and xrefsets if it has them, and if

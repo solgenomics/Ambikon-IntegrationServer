@@ -4,6 +4,7 @@ use warnings;
 use Test::More;
 use IO::String;
 
+use URI::Escape;
 use JSON::Any; my $json = JSON::Any->new;
 
 use lib 't/lib';
@@ -43,7 +44,13 @@ test_constellation(
                 'X-bar'  => 'fogbat',
                 'X-zee'  => 'zaz',
               ],
-              [ qq|{ "xrefs" : [{ "twee": "zee", "query": "$env->{QUERY_STRING}", "tags": ["hihi"] }] }| ],
+              [ <<"" ]
+{ "xrefs" : [ { "twee": "zee", "query": "$env->{QUERY_STRING}", "tags": ["hihi"] },
+              { "zug": "zig", "tags": ["mickey","minnie"] }
+            ],
+  "tags" : [ "settie" ]
+}
+
             ];
         },
 
@@ -92,7 +99,7 @@ test_constellation(
         $data = $json->decode( $mech->content );
 
         is scalar( values %{$data->{noggin}} ), 1, 'only 1 subsite matches foobartag!';
-        is scalar( @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}), 1, 'got 1 xref from foo_bar subsite';
+        is scalar( @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}), 2, 'got 2 xrefs from foo_bar subsite';
 
         $mech->get_ok( '/ambikon/xrefs/search?q=noggin&subsites_with_tag=foobartag!&format=flat_array' );
         $data = $json->decode( $mech->content );
@@ -106,12 +113,24 @@ test_constellation(
         $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag=nonexistent' );
         $data = $json->decode( $mech->content );
 
-        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 0, 'no xrefs satisfy');
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 0, 'no xrefs satisfy' );
 
         $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag=hihi' );
         $data = $json->decode( $mech->content );
-
         is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 1, 'one xref satisfies');
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag_matching='.uri_escape('(hi){2}') );
+        $data = $json->decode( $mech->content );
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 1, 'one xref satisfies');
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag_matching='.uri_escape('no tag like this!') );
+        $data = $json->decode( $mech->content );
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 0, 'no xrefs satisfy');
+
+        $mech->get_ok( '/ambikon/xrefs/search?q=noggin&q=ziggy&subsites_with_tag=foobartag!&xrefs_with_tag_not_matching='.uri_escape('will never match').'&xrefs_with_tag_matching=hihi' );
+        $data = $json->decode( $mech->content );
+        is( scalar @{$data->{noggin}{foo_bar}{xref_set}{xrefs}}, 1, 'one xref satisfies');
+
     },
   );
 
