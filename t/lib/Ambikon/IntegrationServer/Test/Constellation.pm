@@ -68,8 +68,19 @@ sub test_constellation {
             close STDERR unless $ENV{CATALYST_DEBUG};
 
             require Ambikon::IntegrationServer;
-            Ambikon::IntegrationServer->setup_engine('HTTP');
-            Ambikon::IntegrationServer->run( $ambikon_port, $host, { 'fork' => 1 } );
+            if( $Catalyst::VERSION >= 5.9 ) {
+                my $server = Catalyst::EngineLoader->new(
+                    application_name => 'Ambikon::IntegrationServer'
+                )->load(
+                    'Starman',
+                    port => $ambikon_port,
+                    host => 'localhost',
+                );
+                Ambikon::IntegrationServer->run( $ambikon_port, 'localhost' , $server );
+            } else {
+                Ambikon::IntegrationServer->setup_engine('HTTP');
+                Ambikon::IntegrationServer->run( $ambikon_port, $host, { 'fork' => 1 } );
+            }
         },
       );
 
