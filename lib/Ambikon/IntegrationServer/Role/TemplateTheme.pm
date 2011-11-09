@@ -91,7 +91,7 @@ sub fetch_theme {
     AnyEvent::HTTP::http_request(
         'GET'      => $theme_url,
         headers    => $headers,
-        persistent => 1,
+        persistent => 0,
         proxy      => undef,
         sub {
             my ( $body, $headers ) = @_;

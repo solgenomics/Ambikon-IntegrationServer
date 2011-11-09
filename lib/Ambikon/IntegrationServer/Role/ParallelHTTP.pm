@@ -38,7 +38,7 @@ sub http_parallel_requests {
             my %ae_args = (
                 headers    => $default_headers,
                 timeout    => 20,
-                persistent => 1,
+                persistent => 0,
                 proxy      => undef,
                 @ae_http_args,
               );
