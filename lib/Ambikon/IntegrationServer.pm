@@ -20,6 +20,10 @@ sub version {
     (our $VERSION) || 'dev'
 }
 
+sub version_string {
+    'Ambikon/'.$_[0]->version.'';
+}
+
 __PACKAGE__->config(
     name => 'Ambikon::IntegrationServer',
     # Disable deprecated behavior needed by old applications

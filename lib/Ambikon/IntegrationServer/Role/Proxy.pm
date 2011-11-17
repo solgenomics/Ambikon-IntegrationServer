@@ -183,7 +183,7 @@ sub build_external_res_headers {
 sub _via_str {
     my ( $self, $c ) = @_;
 
-    return '1.1 '.$self->ambikon_host_and_port($c).' (Ambikon/'.$c->version.')';
+    return '1.1 '.$self->ambikon_host_and_port($c).' ('.$c->version_string.')';
 }
 
 sub ambikon_host_and_port {

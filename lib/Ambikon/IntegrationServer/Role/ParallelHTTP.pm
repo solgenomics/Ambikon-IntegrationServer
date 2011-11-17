@@ -18,6 +18,7 @@ sub http_parallel_requests {
             $subsite,
             $c->req->headers,
             );
+        $default_headers->{'User-Agent'} = $c->version_string;
 
         for my $job ( @jobs ) {
 
@@ -37,13 +38,14 @@ sub http_parallel_requests {
 
             my %ae_args = (
                 headers    => $default_headers,
-                timeout    => 20,
+                timeout    => 30,
                 persistent => 0,
                 proxy      => undef,
                 @ae_http_args,
               );
 
             #warn "dispatching with: ".Data::Dump::dump( \%ae_args, $end_sub );
+            $c->log->debug( "ParallelHTTP dispatching request: $method $url" ) if $c->debug;
 
             $cv->begin;
             AnyEvent::HTTP::http_request(
@@ -54,7 +56,7 @@ sub http_parallel_requests {
         }
     }
 
-    # now wait for all the req
+    # now wait for all the requests to finish
     $cv->recv if $jobs;
 }
 
