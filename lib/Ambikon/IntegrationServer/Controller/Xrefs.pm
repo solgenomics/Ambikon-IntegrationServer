@@ -88,6 +88,7 @@ sub format_client_response : Private {
 
     # finally, set our response
     $self->status_ok( $c, entity => $responses );
+    $c->log->debug( "xrefs response: ".Data::Dump::dump( $responses ) ) if $c->debug;
 }
 
 
@@ -140,9 +141,12 @@ sub query_subsites :Private {
     my @jobs = map {
         my $query = $_;
         sub {
-            my ( $subsite ) = @_;
+            my ( $c, $subsite ) = @_;
             $responses->{$query} ||= {};
-            return unless $discriminator->( $subsite );
+            unless( $discriminator->( $subsite ) ) {
+                $c->log->debug( "skipping subsite ".$subsite->name ) if $c->debug;
+                return;
+            }
             my $response_slot = $responses->{$query}{$subsite->name} = {};
             return $self->_make_subsite_xrefs_request(
                      $c, $subsite, { %$hints, q => $query, }, $response_slot

@@ -18,11 +18,11 @@ sub http_parallel_requests {
             $subsite,
             $c->req->headers,
             );
-        $default_headers->{'User-Agent'} = $c->version_string;
+        $default_headers->header( 'User-Agent', $c->version_string );
 
         for my $job ( @jobs ) {
 
-            my ( $method, $url, @ae_http_args ) = $job->( $subsite );
+            my ( $method, $url, @ae_http_args ) = $job->( $c, $subsite );
 
             next unless $method; #< job returns nothing if it wants to skip this subsite
             $jobs++;
@@ -39,6 +39,7 @@ sub http_parallel_requests {
             my %ae_args = (
                 headers    => $default_headers,
                 timeout    => 30,
+                keepalive  => 0,
                 persistent => 0,
                 proxy      => undef,
                 @ae_http_args,
@@ -46,6 +47,7 @@ sub http_parallel_requests {
 
             #warn "dispatching with: ".Data::Dump::dump( \%ae_args, $end_sub );
             $c->log->debug( "ParallelHTTP dispatching request: $method $url" ) if $c->debug;
+            $c->log->debug( "args: ".Data::Dump::dump( \%ae_args ) ) if $c->debug;
 
             $cv->begin;
             AnyEvent::HTTP::http_request(
