@@ -37,6 +37,7 @@ test_requires 'JSON::Any' => 0;
 test_requires 'parent' => 0;
 test_requires 'Plack::Loader' => 0;
 test_requires 'Starman' => 0;
+test_requires 'Server::Starter' => 0;
 test_requires 'Test::MockObject' => 0;
 test_requires 'Test::More' => '0.88';
 test_requires 'Test::TCP' => 0;
