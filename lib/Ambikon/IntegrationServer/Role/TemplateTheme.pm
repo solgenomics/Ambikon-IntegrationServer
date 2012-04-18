@@ -7,7 +7,7 @@ use Carp;
 use AnyEvent::HTTP;
 use List::Util 'max';
 use MooseX::Types::URI 'Uri';
-use MooseX::Types::DateTimeX 'DateTime';
+use MooseX::Types::DateTime 'DateTime';
 
 requires '_app', 'build_internal_req_headers', 'modify_response';
 
