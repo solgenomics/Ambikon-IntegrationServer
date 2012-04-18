@@ -4,7 +4,7 @@ use namespace::autoclean;
 
 use Ambikon::IntegrationServer::Subsite;
 
-use Catalyst::Runtime 5.80;
+use Catalyst::Runtime 5.90;
 
 use Catalyst (
     #'-Debug',
