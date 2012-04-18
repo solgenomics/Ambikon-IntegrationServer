@@ -6,8 +6,9 @@ use Carp;
 
 use AnyEvent::HTTP;
 use List::Util 'max';
+use Moose::Util::TypeConstraints;
+use DateTimeX::Easy ();
 use MooseX::Types::URI 'Uri';
-use MooseX::Types::DateTime 'DateTime';
 
 requires '_app', 'build_internal_req_headers', 'modify_response';
 
@@ -31,12 +32,16 @@ for (qw( head body_start body_end )) {
         );
 }
 
-has 'last_modified' => (
-    is  => 'rw',
-    isa => DateTime,
-    coerce => 1,
-  );
+{
+    my $lm_date = subtype as 'DateTime';
+    coerce $lm_date, from 'Str', via { DateTimeX::Easy->new( $_ ) };
 
+    has 'last_modified' => (
+        is  => 'rw',
+        isa => $lm_date,
+        coerce => 1,
+     );
+}
 after 'modify_response' => sub {
     my ( $self, $c ) = @_;
     $c->res->headers->remove_header('ETag','Accept-Ranges');
