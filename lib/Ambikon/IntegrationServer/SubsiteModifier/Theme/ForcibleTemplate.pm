@@ -28,7 +28,8 @@ sub force_apply_theme {
     # forcibly insert the theme template at the end of the <head>
     # section
     $body =~ s!(?= <\s*/\s*head\s*> )! $self->head              !eix
-        or die "failed to forcibly insert template head";
+        or $body =~ s!(?= <\s*body\s*> )! '<head>'.$self->head.'</head>' !eix
+        or die "failed to forcibly insert template head section";
 
     # and at the very beginning of the body section
     $body =~ s!( <\s*body[^>]*> )    ! "$1\n".$self->body_start !eix
