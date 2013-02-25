@@ -419,7 +419,7 @@ sub _make_request_args {
 
     return (
         'GET'      => "$url",
-        headers    => $headers,
+        headers    => $self->bare_headers_hashref( $headers ),
         on_header  => sub {
             my $headers = shift;
             $response_slot->{http_status} = $headers->{Status};

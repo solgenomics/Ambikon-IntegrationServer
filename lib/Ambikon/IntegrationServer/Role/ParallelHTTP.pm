@@ -37,7 +37,7 @@ sub http_parallel_requests {
             }
 
             my %ae_args = (
-                headers    => $default_headers,
+                headers    => $self->bare_headers_hashref( $default_headers ),
                 timeout    => 30,
                 keepalive  => 0,
                 persistent => 0,

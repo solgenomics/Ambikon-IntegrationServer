@@ -2,11 +2,13 @@ package Ambikon::IntegrationServer::Role::Proxy;
 use Moose::Role;
 use namespace::autoclean;
 
+use Scalar::Util ();
+
 use HTTP::Headers ();
 use HTTP::Request::Common ();
 use URI ();
 
-=method build_internal_req_body
+=method build_internal_req_body( $c, $subsite, $internal_headers )
 
 figure out the body of the internal request
 
@@ -101,8 +103,8 @@ sub build_internal_req_url {
 
 =method build_internal_req_headers
 
-makes a bare hashref of headers for the internal request, using the
-user's request headers
+makes an HTTP::Headers object of headers for the internal request,
+using the user's request headers
 
 =cut
 
@@ -136,9 +138,30 @@ sub build_internal_req_headers {
     return $headers;
 }
 
+=method headers_hashref( $headers )
+
+Converts an HTTP::Headers object into a bare hashref.
+
+=cut
+
+sub bare_headers_hashref {
+    my ( $self, $headers ) = @_;
+
+    if( Scalar::Util::blessed( $headers ) ) {
+        my %h;
+        for my $name ( $headers->header_field_names ) {
+            $h{$name} = $headers->header( $name );
+        }
+        return \%h;
+    }
+    else {
+        return $headers;
+    }
+}
+
 =method build_external_res_headers
 
-takes HTTP::Headers object, filters it and puts it into a new
+takes HTTP::Headers object, filters it and returns a new
 HTTP::Headers object.
 
 =cut

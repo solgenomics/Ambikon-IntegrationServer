@@ -65,7 +65,7 @@ sub make_action_code {
             my $url     = $self->build_internal_req_url( $c, $subsite, $c->req->uri );
             my $headers = $self->build_internal_req_headers( $c, $subsite, $c->req->headers );
             my $body    = $self->build_internal_req_body( $c, $subsite, $headers );
-            HTTP::Request->new( $method, $url, [ %$headers ], $body );
+            HTTP::Request->new( $method, $url, [ %{ $self->bare_headers_hashref( $headers ) } ], $body );
         };
 
         @{$c->stash}{'internal_request','internal_url'} = ( $req, $req->uri );

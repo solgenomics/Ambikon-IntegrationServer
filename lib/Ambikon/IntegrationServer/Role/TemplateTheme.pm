@@ -95,7 +95,7 @@ sub fetch_theme {
     my $cv = AnyEvent->condvar;
     AnyEvent::HTTP::http_request(
         'GET'      => $theme_url,
-        headers    => $headers,
+        headers    => $self->bare_headers_hashref( $headers ),
         persistent => 0,
         proxy      => undef,
         sub {
